@@ -15,16 +15,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('component_article_tags', function (Blueprint $table) {
             $table->id();
-            $table->string('username');
-            $table->string('email');
-            $table->string('password');
-            $table->string('phone');
-            $table->string('profilePicture');
-            $table->integer('statusId');
-            $table->integer('roleId');
-            $table->string('description');
 
             $this->getDefaultTimestamps($table);
         });
@@ -35,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('component_article_tags');
     }
 };

@@ -18,6 +18,8 @@ return new class extends Migration
         Schema::create('component_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('icon');
+            $table->integer('statusId');
             $table->foreignId('userId');
 
             $this->getDefaultCreatedBy($table);
