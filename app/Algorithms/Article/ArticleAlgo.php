@@ -4,6 +4,7 @@ namespace App\Algorithms\Article;
 
 use App\Models\Article\Article;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Services\Constant\Article\StatusArticle;
 use App\Services\Constant\Activity\ActivityAction;
 use App\Http\Requests\Article\CreateArticleRequest;
@@ -20,6 +21,13 @@ class ArticleAlgo
         try {
             
             DB::transaction(function () use ($request) {
+                
+                // $user = Auth::guard('api')->user();
+
+                // // $createdBy = [
+                // //     'createdBy' => $user->id,
+                // //     'createdByName' => $user->username
+                // // ];
                 
                 $this->article = $this->createArticle($request);
 
@@ -79,15 +87,25 @@ class ArticleAlgo
     {
         $filePath = $this->saveFile($request);
 
+        $gallery = $this->saveGallery($request);
+
+        $user = Auth::guard('api')->user();
+
         if ($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID) {
             errStatusId();
         }
 
         $article = Article::create([
             'title' => $request->title,
+            'slug' => Article::createSlug($request->title),
+            'userId' => $user->id,
+            'description' => $request->description,
             'content' => $request->content,
+            'filepath' => $filePath,
+            'gallery' => $gallery,
             'statusId' => $request->statusId,
-            'filepath' => $filePath
+            'createdBy' => $user->id,
+            'createdByName' => $user->username
         ]);
 
         return $article;
@@ -95,13 +113,26 @@ class ArticleAlgo
 
     private function updateArticle($request)
     {
+        $filePath = $this->saveFile($request);
+
+        $gallery = $this->saveGallery($request);
+
+        $user = Auth::guard('api')->user();
+
         if($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID) {
             errStatusId();
         }
         $this->article->update([
             'title' => $request->title,
+            'slug' => Article::createSlug($request->title),
+            'userId' => $user->id,
+            'description' => $request->description,
             'content' => $request->content,
+            'filepath' => $filePath,
+            'gallery' => $gallery,
             'statusId' => $request->statusId,
+            'createdBy' => $user->id,
+            'createdByName' => $user->username
             
         ]);
     }
@@ -116,5 +147,23 @@ class ArticleAlgo
         $filename = $lowerTitle.'.'.$extension;
         $filePath = $file->storeAs('uploads/article', $filename, 'public');  
         return $filePath;
+    }
+
+    private function saveGallery($request)
+    {
+        $imagePaths = [];
+
+        if($request->hasFile('gallery')) {
+            foreach ($request->file('gallery') as $image) {
+                $title = $request->input('title');
+                $sanitizedTitle = str_replace(' ', '_', $title);
+                $lowerTitle = strtolower($sanitizedTitle);
+                $extension = $image->getClientOriginalExtension();
+                $filename = $lowerTitle.'.'.$extension;
+                $imagePath = $image->storeAs('uploads/article', $filename, 'public');
+                $imagePaths[] = $imagePath;
+            }
+        }
+        return $imagePaths;
     }
 }

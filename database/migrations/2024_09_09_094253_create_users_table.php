@@ -20,11 +20,6 @@ return new class extends Migration
             $table->string('username');
             $table->string('email');
             $table->string('password');
-            $table->string('phone');
-            $table->string('profilePicture');
-            $table->integer('statusId');
-            $table->integer('roleId');
-            $table->string('description');
 
             $this->getDefaultTimestamps($table);
         });
