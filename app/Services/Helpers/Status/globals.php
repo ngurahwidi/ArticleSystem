@@ -13,3 +13,10 @@ if (!function_exists("errAuthentication")) {
         error(401, "Unauthenticated!", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errForbidden")) {
+    function errForbidden($internalMsg = "", $status = null)
+    {
+        error(403, "Forbidden!", $internalMsg, $status);
+    }
+}

@@ -18,9 +18,12 @@ return new class extends Migration
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug');
             $table->foreignId('userId');
+            $table->string('description');
             $table->text('content');
             $table->string('filepath');
+            $table->json('gallery');
             $table->integer('statusId');
 
             $this->getDefaultCreatedBy($table);
