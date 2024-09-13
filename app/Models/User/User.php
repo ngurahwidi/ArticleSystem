@@ -3,10 +3,12 @@
 namespace App\Models\User;
 
 use App\Models\BaseModel;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Article\Article;
+use App\Models\Component\Category;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -24,6 +26,16 @@ class User extends Authenticatable implements JWTSubject
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     const DELETED_AT = 'deletedAt';
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class, 'userId');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class, 'userId');
+    }
 
     public function getJWTIdentifier()
     {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Article;
 use Illuminate\Http\Request;
 use App\Models\Article\Article;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use App\Algorithms\Article\ArticleAlgo;
 use App\Services\Constant\Article\StatusArticle;
 use App\Http\Requests\Article\CreateArticleRequest;
@@ -37,6 +38,10 @@ class ArticleController extends Controller
            errArticleGet();
         }
 
+        if(Auth::user()->id != $article->userId){
+            errForbidden("You don't have permission to update this article");
+        }
+
         $algo = new ArticleAlgo($article);
         return $algo->update($request);
     }
@@ -46,6 +51,10 @@ class ArticleController extends Controller
         $article = Article::find($id);
         if(!$article){
            errArticleGet();
+        }
+
+        if(Auth::user()->id != $article->userId){
+            errForbidden("You don't have permission to delete this article");
         }
 
         $algo = new ArticleAlgo($article);
