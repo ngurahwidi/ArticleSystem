@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Component\Category;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Article\Traits\HasActivityArticleProperty;
+use App\Parser\Article\ArticleParser;
 
 class Article extends BaseModel
 {
@@ -23,6 +24,8 @@ class Article extends BaseModel
         'gallery' => 'array'
     ];
 
+    public $parserClass = ArticleParser::class;
+
     public function users()
     {
         return $this->belongsTo(User::class, 'userId');
@@ -31,6 +34,33 @@ class Article extends BaseModel
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'article_categories', 'articleId', 'categoryId');
+    }
+
+    public function scopeFilter($query, $request)
+    {
+        if($request->has('search')) {
+            $query->where(function($query) use ($request) {
+                $query->where('title', 'like', '%'.$request->search.'%')
+                ->orWhere('content', 'like', '%'.$request->search.'%');
+            });
+        }
+
+        if($request->has('statusId')) {
+            $query->where('statusId', $request->input('statusId'));
+        }
+
+        // if($request->has('category_id')) {
+        //     $query->whereHas('categories', function($query) use ($request) {
+        //         $query->where('article_categories.id', $request->input('category_id'));
+        //     });
+        // }
+
+        if ($request->has('fromDate') && $request->has('toDate')) {
+            $query->whereDate('createdAt', '>=', $request->fromDate) 
+            ->whereDate('createdAt', '<=', $request->toDate);
+        }
+
+        return $query;
     }
     
 
