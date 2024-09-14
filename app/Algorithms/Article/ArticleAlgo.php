@@ -22,13 +22,6 @@ class ArticleAlgo
             
             DB::transaction(function () use ($request) {
                 
-                // $user = Auth::guard('api')->user();
-
-                // // $createdBy = [
-                // //     'createdBy' => $user->id,
-                // //     'createdByName' => $user->username
-                // // ];
-                
                 $this->article = $this->createArticle($request);
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::CREATE)
@@ -91,7 +84,7 @@ class ArticleAlgo
 
         $user = Auth::guard('api')->user();
 
-        if ($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID) {
+        if ($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID && $request->statusId != StatusArticle::ARCHIVED_ID) {
             errStatusId();
         }
 
@@ -119,7 +112,7 @@ class ArticleAlgo
 
         $user = Auth::guard('api')->user();
 
-        if($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID) {
+        if($request->statusId != StatusArticle::DRAFT_ID && $request->statusId != StatusArticle::PUBLISH_ID && $request->statusId != StatusArticle::ARCHIVED_ID) {
             errStatusId();
         }
         $this->article->update([

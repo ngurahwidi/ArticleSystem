@@ -10,19 +10,34 @@ use App\Algorithms\Article\ArticleAlgo;
 use App\Services\Constant\Article\StatusArticle;
 use App\Http\Requests\Article\CreateArticleRequest;
 use App\Http\Requests\Article\UpdateArticleRequest;
+use App\Parser\Article\ArticleParser;
 
 class ArticleController extends Controller
 {
     public function get(Request $request)
     {
-        $article = Article::getOrPaginate($request, true);
+       $article = Article::filter($request)->getOrPaginate($request, true);
 
-        $article->getCollection()->transform(function ($article) {
-            $article->statusId = StatusArticle::display($article->statusId);
-            return $article;
-        });
+       if($article->isEmpty()){
+           errArticleGet();
+       }
 
-        return success($article);
+       $parsedArticle = ArticleParser::briefs($article);
+
+        return success($parsedArticle);
+    }
+
+    public function getById($id, Request $request)
+    {
+        $article = Article::find($id);
+
+        if(!$article){
+            errArticleGet();
+         }
+
+        $parsedArticle = ArticleParser::first($article);
+
+        return success($parsedArticle);
     }
 
     public function create(CreateArticleRequest $request)
