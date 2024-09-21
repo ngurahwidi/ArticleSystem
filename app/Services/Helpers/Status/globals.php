@@ -20,3 +20,10 @@ if (!function_exists("errForbidden")) {
         error(403, "Forbidden!", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errNotFound")) {
+    function errNotFound($internalMsg = "", $status = null)
+    {
+        error(404, "Not Found!", $internalMsg, $status);
+    }
+}

@@ -17,6 +17,8 @@ return new class extends Migration
     {
         Schema::create('component_article_tags', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('articleId')->constrained('articles')->onDelete('cascade');
+            $table->foreignId('tagId')->constrained('component_tags')->onDelete('cascade');
 
             $this->getDefaultTimestamps($table);
         });

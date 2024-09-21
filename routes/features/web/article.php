@@ -7,7 +7,7 @@ Route::group(['middleware' => 'auth.api'], function () {
         Route::get("", [ArticleController::class, "get"]);
         Route::get("{id}", [ArticleController::class, "getById"]);
         Route::post("", [ArticleController::class, "create"]);
-        Route::post("{id}", [ArticleController::class, "update"]);
+        Route::post("{id}/update", [ArticleController::class, "update"]);
         Route::delete("{id}", [ArticleController::class, "delete"]);
 });
        

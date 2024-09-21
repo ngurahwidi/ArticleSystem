@@ -3,6 +3,8 @@
 namespace App\Parser\Article;
 
 use App\Services\Constant\Article\StatusArticle;
+use App\Services\Constant\Global\StatusId;
+use App\Services\Constant\Global\StatusValidation;
 use Carbon\Carbon;
 use GlobalXtreme\Parser\BaseParser;
 
@@ -25,10 +27,11 @@ class ArticleParser extends BaseParser
             'userId' => $data->userId,
             'description' => $data->description,
             'content' => $data->content,
-            'gallery' => $data->gallery,
-            'status' => StatusArticle::display($data->statusId),
+            'gallery' => $data->galleries,
+            'status' => StatusValidation::display($data->statusId),
+            'categories' => $data->categories->pluck('name'),
+            'tags' => $data->tags->pluck('name'),
             'author' => $data->createdByName,
-            'createdAt' => Carbon::parse($data->createdAt)->format('d-m-Y H:i:s'),
         ];
 
         return $result;

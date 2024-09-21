@@ -5,14 +5,14 @@ namespace App\Models\Component;
 use App\Models\BaseModel;
 use App\Models\User\User;
 use App\Models\Article\Article;
-use App\Parser\Component\ComponentParser;
-use Illuminate\Console\View\Components\Component;
 use App\Models\Component\Traits\HasActivityComponentProperty;
+use App\Parser\Component\ComponentParser;
 
-class Category extends BaseModel
+class Tag extends BaseModel
 {
     use HasActivityComponentProperty;
-    protected $table = 'component_categories';
+    
+    protected $table = 'component_tags';
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -25,7 +25,7 @@ class Category extends BaseModel
 
     public function articles()
     {
-        return $this->belongsToMany(Article::class, 'component_article_categories', 'categoryId', 'articleId');
+        return $this->belongsToMany(Article::class, 'component_article_tags', 'tagId', 'articleId');
     }
 
     public function users()

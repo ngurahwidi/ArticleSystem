@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('description');
             $table->text('content');
             $table->string('filepath');
-            $table->json('gallery');
+            $table->json('galleries');
             $table->integer('statusId');
 
             $this->getDefaultCreatedBy($table);

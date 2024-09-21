@@ -7,9 +7,16 @@ if (!function_exists("errArticleGet")) {
     }
 }
 
-if (!function_exists("errStatusId")) {
-    function errStatusId($internalMsg = "", $status = null)
+if (!function_exists("errStatusNotFound")) {
+    function errStatusNotFound($internalMsg = "", $status = null)
     {
         error(404, "StatusId not found!", $internalMsg, $status);
+    }
+}
+
+if (!function_exists("errArticleCreate")) {
+    function  errArticleValidStatus($internalMsg = "", $status = null)
+    {
+        error(403, "error", $internalMsg, $status);
     }
 }

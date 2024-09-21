@@ -2,13 +2,15 @@
 
 namespace App\Models\Article;
 
+use Carbon\Carbon;
 use App\Models\BaseModel;
 use App\Models\User\User;
 use Illuminate\Support\Str;
+use App\Models\Component\Tag;
 use App\Models\Component\Category;
+use App\Parser\Article\ArticleParser;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Article\Traits\HasActivityArticleProperty;
-use App\Parser\Article\ArticleParser;
 
 class Article extends BaseModel
 {
@@ -21,7 +23,7 @@ class Article extends BaseModel
         self::CREATED_AT => 'datetime',
         self::UPDATED_AT => 'datetime',
         self::DELETED_AT => 'datetime',
-        'gallery' => 'array'
+        'galleries' => 'array'
     ];
 
     public $parserClass = ArticleParser::class;
@@ -33,7 +35,12 @@ class Article extends BaseModel
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'article_categories', 'articleId', 'categoryId');
+        return $this->belongsToMany(Category::class, 'component_article_categories', 'articleId', 'categoryId');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'component_article_tags', 'articleId', 'tagId');
     }
 
     public function scopeFilter($query, $request)
@@ -49,20 +56,22 @@ class Article extends BaseModel
             $query->where('statusId', $request->input('statusId'));
         }
 
-        // if($request->has('category_id')) {
-        //     $query->whereHas('categories', function($query) use ($request) {
-        //         $query->where('article_categories.id', $request->input('category_id'));
-        //     });
-        // }
-
         if ($request->has('fromDate') && $request->has('toDate')) {
-            $query->whereDate('createdAt', '>=', $request->fromDate) 
-            ->whereDate('createdAt', '<=', $request->toDate);
+            
+            $fromDate = Carbon::createFromFormat('d/m/Y', $request->fromDate)->startOfDay();
+            $toDate = Carbon::createFromFormat('d/m/Y', $request->toDate)->endOfDay();
+
+            $query->whereBetween('createdAt', [$fromDate, $toDate]);
+        }
+
+        if($request->has('categoryId')) {
+            $query->whereHas('categories', function($query) use ($request) {
+                $query->where('component_categories.id', $request->input('categoryId'));
+            });
         }
 
         return $query;
     }
-    
 
     protected static function boot()
     {
@@ -70,15 +79,28 @@ class Article extends BaseModel
 
         static::saving(function ($article) {
             if ($article->isDirty('title')) {
-                $article->slug = Article::createSlug($article->title);
+                $article->slug = Article::createSlug($article->title,'slug', $article->id);
             }
         });
     }
 
-    public static function createSlug($title)
+    public static function createSlug(string $title, string $column = 'slug', $id)
     {
+        $article = Article::find($id);
+
+        if ($article && $title === $article->title) {
+            return $article->slug;
+        }
+
         $slug = Str::slug($title);
-        $count = Article::where('slug', 'like', "{$slug}%")->count();
-        return $count ? "{$slug}-{$count}" : $slug;
+
+        $checkSlug = Article::query()->where($column, $slug)->first();
+        if ($checkSlug) {
+            $title = $title ."-". uniqid();
+
+            return self::createSlug($title, $column, $id);
+        }
+
+        return $slug;
     }
 }

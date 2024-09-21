@@ -2,6 +2,7 @@
 
 namespace App\Models\Article\Traits;
 
+use App\Parser\Article\ArticleParser;
 use App\Models\Activity\Traits\HasActivity;
 use App\Services\Constant\Activity\ActivityType;
 
@@ -63,7 +64,7 @@ trait HasActivityArticleProperty
     {
         $this->refresh();
 
-        return [];
+        return ArticleParser::first($this);
     }
 
 }
