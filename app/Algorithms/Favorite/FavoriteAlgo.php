@@ -19,12 +19,6 @@ class FavoriteAlgo
         try {
 
             DB::transaction(function () {
-                // $user = Auth::guard('api')->user();
-                // if ($user->favorites()->where('articleId', $this->article->id)->exists()) {
-                //     errNotFound("Article Already Favorited");
-                // }
-
-                // $user->favorites()->attach($this->article->id);
 
                 if ($this->article->favoritedBy()->where('userId', Auth::guard('api')->user()->id)->exists()) {
                     errArticleFavorite("Article Already Favorited");
