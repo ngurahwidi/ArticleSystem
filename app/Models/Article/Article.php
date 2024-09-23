@@ -43,6 +43,11 @@ class Article extends BaseModel
         return $this->belongsToMany(Tag::class, 'component_article_tags', 'articleId', 'tagId');
     }
 
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites', 'articleId', 'userId');
+    }
+
     public function scopeFilter($query, $request)
     {
         if($request->has('search')) {

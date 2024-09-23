@@ -20,3 +20,9 @@ if (!function_exists("errArticleCreate")) {
         error(403, "error", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errArticleFavorite")) {
+    function errArticleFavorite($internalMsg = "", $status = null){
+        error(400, "error article favorite", $internalMsg, $status);
+    }
+}
