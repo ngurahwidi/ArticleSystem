@@ -15,18 +15,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('articles', function (Blueprint $table) {
+        Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('slug');
-            $table->foreignId('userId');
-            $table->string('description');
-            $table->text('content');
-            $table->string('filepath')->nullable();
-            $table->json('galleries')->nullable();
-            $table->integer('statusId');
+            $table->foreignId('userId')->constrained('users')->onDelete('cascade');
+            $table->foreignId('articleId')->constrained('articles')->onDelete('cascade');
+            $table->foreignId('parentId')->nullable()->constrained('comments')->onDelete('cascade');
+            $table->text('comment');
 
-            $this->getDefaultCreatedBy($table);
             $this->getDefaultTimestamps($table);
         });
     }
@@ -36,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('articles');
+        Schema::dropIfExists('comments');
     }
 };

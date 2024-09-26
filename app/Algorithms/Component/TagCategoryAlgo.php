@@ -11,6 +11,7 @@ use App\Services\Constant\Global\StatusId;
 use App\Http\Requests\Component\CategoryRequest;
 use App\Services\Constant\Activity\ActivityAction;
 use App\Services\Constant\Global\StatusValidation;
+use App\Services\Misc\FileUpload;
 
 class TagCategoryAlgo
 {
@@ -24,6 +25,8 @@ class TagCategoryAlgo
         try {
             $component = DB::transaction(function () use ($model, $request) {
                 $component = $this->createCategory($model, $request);
+
+                $component = $this->uploadIcon($component, $request);
 
                 $component->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new " .$component->getTable() . ":$component->name [$component->id]");
@@ -47,6 +50,8 @@ class TagCategoryAlgo
 
                 $this->updateCategory($model, $request);
 
+                $this->uploadIcon($model, $request);
+
                 $model->setActivityPropertyAttributes(ActivityAction::UPDATE)
                 ->saveActivity("Update " . $model->getTable() . ": $model->name,[$model->id]");
             });
@@ -60,8 +65,6 @@ class TagCategoryAlgo
 
     private function createCategory ($model, $request)
     {
-        $icon = $this->saveIcon($request);
-
         $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId, StatusValidation::VALIDATION_STATUS)) {
@@ -70,7 +73,6 @@ class TagCategoryAlgo
 
         $component = $model::create([
             'name' => $request->name,
-            'icon' => $icon,
             'statusId' => $request->statusId,
             'userId' => $user->id,
             'createdBy' => $user->id,
@@ -82,7 +84,6 @@ class TagCategoryAlgo
 
     private function updateCategory ($model, $request)
     {
-        $icon = $this->saveIcon($request);
 
         $user = Auth::guard('api')->user();
 
@@ -92,22 +93,22 @@ class TagCategoryAlgo
 
         $model->update([
             'name' => $request->name,
-            'icon' => $icon,
             'statusId' => $request->statusId,
             'userId' => $user->id,
         ]);
+    }
+
+    private function uploadIcon($model, $request)
+    {
+        $model->icon = $this->saveIcon($request);
+        $model->save();
+        return $model;
     }
 
     private function saveIcon (Request $request)
     {
         $icon = $request->file('icon');
         $name = $request->input('name');
-        $sanitizedName = str_replace(' ', '_', $name);
-        $lowerName = strtolower($sanitizedName);
-        $extension = $icon->getClientOriginalExtension();
-        $iconName = $lowerName.'.'.$extension;
-
-        $iconPath = $icon->storeAs('uploads/component', $iconName, 'public'); 
-        return $iconPath;
+        return FileUpload::upload($icon, $name, 'uploads/component');
     }
 }

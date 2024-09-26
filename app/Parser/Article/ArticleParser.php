@@ -27,7 +27,7 @@ class ArticleParser extends BaseParser
             'userId' => $data->userId,
             'description' => $data->description,
             'content' => $data->content,
-            'gallery' => $data->galleries,
+            'galleries' => $data->galleries,
             'status' => StatusValidation::display($data->statusId),
             'categories' => $data->categories->pluck('name'),
             'tags' => $data->tags->pluck('name'),

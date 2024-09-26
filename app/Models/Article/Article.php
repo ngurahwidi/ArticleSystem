@@ -11,6 +11,7 @@ use App\Models\Component\Category;
 use App\Parser\Article\ArticleParser;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Article\Traits\HasActivityArticleProperty;
+use App\Models\Comment\Comment;
 
 class Article extends BaseModel
 {
@@ -48,6 +49,11 @@ class Article extends BaseModel
         return $this->belongsToMany(User::class, 'favorites', 'articleId', 'userId');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'articleId');
+    }
+
     public function scopeFilter($query, $request)
     {
         if($request->has('search')) {
@@ -61,17 +67,13 @@ class Article extends BaseModel
             $query->where('statusId', $request->input('statusId'));
         }
 
-        if ($request->has('fromDate') && $request->has('toDate')) {
-            
-            $fromDate = Carbon::createFromFormat('d/m/Y', $request->fromDate)->startOfDay();
-            $toDate = Carbon::createFromFormat('d/m/Y', $request->toDate)->endOfDay();
-
-            $query->whereBetween('createdAt', [$fromDate, $toDate]);
+        if ($request->has('fromDate') && $request->has('toDate')) {   
+            $query->ofDate('createdAt', $request->fromDate, $request->toDate);
         }
 
         if($request->has('categoryId')) {
             $query->whereHas('categories', function($query) use ($request) {
-                $query->where('component_categories.id', $request->input('categoryId'));
+                $query->where('id', $request->input('categoryId'));
             });
         }
 

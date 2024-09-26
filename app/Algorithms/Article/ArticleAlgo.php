@@ -2,6 +2,8 @@
 
 namespace App\Algorithms\Article;
 
+use Illuminate\Http\Request;
+use App\Models\Component\Tag;
 use App\Models\Article\Article;
 use App\Models\Component\Category;
 use Illuminate\Support\Facades\DB;
@@ -9,10 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\Constant\Global\StatusId;
 use App\Services\Constant\Article\StatusArticle;
 use App\Services\Constant\Activity\ActivityAction;
+use App\Services\Constant\Global\StatusValidation;
 use App\Http\Requests\Article\CreateArticleRequest;
 use App\Http\Requests\Article\UpdateArticleRequest;
-use App\Models\Component\Tag;
-use App\Services\Constant\Global\StatusValidation;
+use App\Services\Misc\FileUpload;
 
 class ArticleAlgo
 {
@@ -25,8 +27,11 @@ class ArticleAlgo
         try {
             
             DB::transaction(function () use ($request) {
-                
                 $this->article = $this->createArticle($request);
+
+                $this->article = $this->uploadFile($request);
+
+                $this->article = $this->saveTagCategory($request);
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new article : {$this->article->title},  [{$this->article->id}]");
@@ -47,6 +52,10 @@ class ArticleAlgo
                 $this->article->setOldActivityPropertyAttributes(ActivityAction::UPDATE);
 
                 $this->updateArticle($request);
+
+                $this->uploadFile($request);
+
+                $this->updateTagCategory($request);
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::UPDATE)
                     ->saveActivity("Update article : {$this->article->title},  [{$this->article->id}]");
@@ -69,7 +78,7 @@ class ArticleAlgo
 
                 $this->article->delete();
 
-                $this->article->categories()->detach();
+                $this->article = $this->deleteTagCategory();
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::DELETE)
                     ->saveActivity("Delete article : {$this->article->title},  [{$this->article->id}]");
@@ -82,12 +91,16 @@ class ArticleAlgo
         }
     }
 
-    private function createArticle($request)
+    private function uploadFile($request)
     {
-        $filePath = $this->saveFile($request);
+        $this->article->galleries = $this->saveGallery($request);
+        $this->article->filepath = $this->saveFile($request);
+        $this->article->save();
+        return $this->article;
+    }
 
-        $galleries = $this->saveGallery($request);
-
+    private function createArticle($request)
+    {     
         $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId,StatusValidation::VALIDATION_STATUS)) {
@@ -114,25 +127,18 @@ class ArticleAlgo
             'userId' => $user->id,
             'description' => $request->description,
             'content' => $request->content,
-            'filepath' => $filePath,
-            'galleries' => $galleries,
             'statusId' => $request->statusId,
             'createdBy' => $user->id,
             'createdByName' => $user->username
         ]);
 
-        $article->categories()->attach($request->input('categoryIds'));
-        $article->tags()->attach($request->input('tagIds'));
+        
 
         return $article;
     }
 
     private function updateArticle($request)
     {
-        $filePath = $this->saveFile($request);
-
-        $gallery = $this->saveGallery($request);
-
         $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId, StatusValidation::VALIDATION_STATUS)) {
@@ -153,17 +159,12 @@ class ArticleAlgo
             }
         }
 
-        $this->article->categories()->sync($request->input('categoryIds'));
-        $this->article->tags()->sync($request->input('tagIds'));
-
         $this->article->update([
             'title' => $request->title,
             'slug' => Article::createSlug($request->title, 'slug', $request->id),
             'userId' => $user->id,
             'description' => $request->description,
             'content' => $request->content,
-            'filepath' => $filePath,
-            'gallery' => $gallery,
             'statusId' => $request->statusId,
             'createdBy' => $user->id,
             'createdByName' => $user->username
@@ -173,31 +174,44 @@ class ArticleAlgo
 
     private function saveFile($request)
     {
-        $file = $request->file('filepath');
-        $title = $request->input('title');
-        $sanitizedTitle = str_replace(' ', '_', $title);
-        $lowerTitle = strtolower($sanitizedTitle);
-        $extension = $file->getClientOriginalExtension();
-        $filename = $lowerTitle.'.'.$extension;
-        $filePath = $file->storeAs('uploads/article', $filename, 'public');  
-        return $filePath;
+        if($request->hasFile('filepath')) {
+            $file = $request->file('filepath');
+            $title = $request->input('title');
+            return FileUpload::upload($file, $title, 'uploads/article'); 
+        }     
     }
 
-    private function saveGallery($request)
+    private function saveGallery(Request $request)
     {
         $imagePaths = [];
 
         if($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $image) {
                 $title = $request->input('title');
-                $sanitizedTitle = str_replace(' ', '_', $title);
-                $lowerTitle = strtolower($sanitizedTitle);
-                $extension = $image->getClientOriginalExtension();
-                $filename = $lowerTitle.'.'.$extension;
-                $imagePath = $image->storeAs('uploads/article', $filename, 'public');
-                $imagePaths[] = $imagePath;
+                
+                $imagePaths[] = FileUpload::upload($image, $title, 'uploads/article/gallery');
             }
         }
         return $imagePaths;
+    }
+
+    private function saveTagCategory($request)
+    {
+        $this->article->categories()->attach($request->input('categoryIds'));
+        $this->article->tags()->attach($request->input('tagIds'));
+        return $this->article;
+    }
+
+    private function updateTagCategory($request){
+        $this->article->categories()->sync($request->input('categoryIds'));
+        $this->article->tags()->sync($request->input('tagIds'));
+        return $this->article;
+    }
+
+    private function deleteTagCategory()
+    {
+        $this->article->categories()->detach();
+        $this->article->tags()->detach();
+        return $this->article;
     }
 }
