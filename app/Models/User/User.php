@@ -6,6 +6,7 @@ use App\Models\BaseModel;
 use App\Models\Article\Article;
 use App\Models\Comment\Comment;
 use App\Models\Component\Category;
+use App\Parser\User\UserParser;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,6 +28,8 @@ class User extends Authenticatable implements JWTSubject
     const CREATED_AT = 'createdAt';
     const UPDATED_AT = 'updatedAt';
     const DELETED_AT = 'deletedAt';
+
+    public $parserClass = UserParser::class;
 
     public function articles()
     {

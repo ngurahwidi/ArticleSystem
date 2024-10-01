@@ -32,6 +32,7 @@ class ArticleParser extends BaseParser
             'categories' => $data->categories->pluck('name'),
             'tags' => $data->tags->pluck('name'),
             'author' => $data->createdByName,
+            'comments' => $data->comments,
         ];
 
         return $result;

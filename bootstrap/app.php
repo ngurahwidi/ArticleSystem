@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckAPIToken;
 use Illuminate\Foundation\Application;
@@ -30,7 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['api/*']);
         $middleware->alias(
             [
-                'auth.api' => CheckAPIToken::class
+                'auth.api' => CheckAPIToken::class,
+                'auth.role' => CheckRole::class
             ]    
         );
     })

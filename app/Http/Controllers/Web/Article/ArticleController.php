@@ -25,7 +25,7 @@ class ArticleController extends Controller
 
     public function getById($id, Request $request)
     {
-        $article = Article::find($id);
+        $article = Article::with('comments')->find($id);
         if(!$article){
             errArticleGet();
          }

@@ -3,13 +3,18 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Component\TagController;
 use App\Http\Controllers\Web\Component\CategoryController;
+use App\Services\Constant\User\RoleUser;
+
+$admin = RoleUser::ADMIN_ID;
+$author = RoleUser::AUTHOR_ID;
 
 Route::prefix("components")
 ->middleware("auth.api")
-->group(function () {
+->group(function () use ($admin, $author) {
    
     
     Route::prefix("categories")
+    ->middleware("auth.role:$admin, $author")
     ->group(function () {
 
         Route::get("", [CategoryController::class, "get"]);
@@ -20,6 +25,7 @@ Route::prefix("components")
     });
 
     Route::prefix("tags")
+    ->middleware("auth.role:$admin, $author")
     ->group(function () {
 
         Route::get("", [TagController::class, "get"]);

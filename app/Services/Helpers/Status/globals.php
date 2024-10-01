@@ -27,3 +27,10 @@ if (!function_exists("errNotFound")) {
         error(404, "Not Found!", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errAccessDenied")) {
+    function errAccessDenied($internalMsg = "", $status = null)
+    {
+        error(403, "Access Denied!", $internalMsg, $status);
+    }
+}
