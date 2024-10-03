@@ -14,7 +14,7 @@ class FavoriteController extends Controller
     {
         $article = Article::find($request->articleId);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
 
         $algo = new FavoriteAlgo($article);
@@ -25,7 +25,7 @@ class FavoriteController extends Controller
     {
         $article = Article::find($request->articleId);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
 
         $algo = new FavoriteAlgo($article);

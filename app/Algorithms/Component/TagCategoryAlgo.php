@@ -26,7 +26,7 @@ class TagCategoryAlgo
             $component = DB::transaction(function () use ($model, $request) {
                 $component = $this->createCategory($model, $request);
 
-                $component = $this->uploadIcon($component, $request);
+                $this->uploadIcon($component, $request);
 
                 $component->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new " .$component->getTable() . ":$component->name [$component->id]");
@@ -102,7 +102,6 @@ class TagCategoryAlgo
     {
         $model->icon = $this->saveIcon($request);
         $model->save();
-        return $model;
     }
 
     private function saveIcon (Request $request)

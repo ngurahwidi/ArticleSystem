@@ -41,6 +41,9 @@ class FavoriteAlgo
     {
         try {
             DB::transaction(function () {
+                
+                $this->article->setOldActivityPropertyAttributes(ActivityAction::DELETE);
+                
                 if (!$this->article->favoritedBy()->where('userId', Auth::guard('api')->user()->id)->exists()) {
                     errArticleFavorite("Article not in Favorites");
                 }

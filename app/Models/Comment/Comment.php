@@ -2,9 +2,10 @@
 
 namespace App\Models\Comment;
 
-use App\Models\Article\Article;
 use App\Models\BaseModel;
 use App\Models\User\User;
+use App\Models\Article\Article;
+use App\Parser\Comment\CommentParser;
 
 class Comment extends BaseModel
 {
@@ -16,6 +17,8 @@ class Comment extends BaseModel
         self::UPDATED_AT => 'datetime',
         self::DELETED_AT => 'datetime'
     ];
+
+    public $parserClass = CommentParser::class;
 
     public function users()
     {

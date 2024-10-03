@@ -73,16 +73,22 @@ class Article extends BaseModel
 
         if($request->has('categoryIds')) {
             $categoryIds = $request->input('categoryIds');
-            $query->whereHas('categories', function($query) use ($categoryIds) {
-                $query->whereIn('component_article_categories.categoryId', $categoryIds);
-            });
+
+            if (isset($categoryIds) && is_array($categoryIds)) {
+                $query->whereHas('categories', function($query) use ($categoryIds) {
+                    $query->whereIn('component_article_categories.categoryId', $categoryIds);
+                });
+            }
         }
 
         if($request->has('tagIds')) {
             $tagIds = $request->input('tagIds');
-            $query->whereHas('tags', function($query) use ($tagIds) {
-                $query->whereIn('component_article_tags.tagId', $tagIds);
-            });
+
+            if (isset($tagIds) && is_array($tagIds)) {
+                $query->whereHas('tags', function($query) use ($tagIds) {
+                    $query->whereIn('component_article_tags.tagId', $tagIds);
+                });
+            }   
         }
 
         if($request->has('sort_by_date')) {

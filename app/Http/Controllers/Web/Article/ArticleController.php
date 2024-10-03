@@ -6,10 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Article\Article;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Parser\Article\ArticleParser;
+use App\Parser\Comment\CommentParser;
 use App\Algorithms\Article\ArticleAlgo; 
 use App\Http\Requests\Article\CreateArticleRequest;
 use App\Http\Requests\Article\UpdateArticleRequest;
-use App\Parser\Article\ArticleParser;
 
 class ArticleController extends Controller
 {
@@ -43,11 +44,11 @@ class ArticleController extends Controller
     {
         $article = Article::find($id);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
 
         if(Auth::guard('api')->user()->id != $article->userId){
-            errForbidden("You don't have permission to update this article");
+            errAccessDenied();
         }
 
         $algo = new ArticleAlgo($article);
@@ -58,11 +59,11 @@ class ArticleController extends Controller
     {
         $article = Article::find($id);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
 
         if(Auth::guard('api')->user()->id != $article->userId){
-            errForbidden("You don't have permission to delete this article");
+            errAccessDenied();
         }
 
         $algo = new ArticleAlgo($article);

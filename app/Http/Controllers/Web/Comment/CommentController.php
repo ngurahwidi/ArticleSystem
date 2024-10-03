@@ -7,6 +7,7 @@ use App\Models\Article\Article;
 use App\Http\Controllers\Controller;
 use App\Algorithms\Comment\CommentAlgo;
 use App\Models\Comment\Comment;
+use App\Parser\Comment\CommentParser;
 use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
@@ -16,18 +17,19 @@ class CommentController extends Controller
     {
         $article = Article::find($request->articleId);
         if(!$article){
-            errNotFound("Article Not Found");
+            errArticleGet();
         }
-        
-        $algo = new CommentAlgo($article);
-        return $algo->get($request);
+
+        $comments = $article->comments;
+
+        return success(CommentParser::briefs($comments));
     }
     
     public function create(Request $request)
     {
         $article = Article::find($request->articleId);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
         
         $algo = new CommentAlgo($article);
@@ -38,17 +40,17 @@ class CommentController extends Controller
     {
         $article = Article::find($request->articleId);
         if(!$article){
-           errNotFound("Article Not Found");
+           errArticleGet();
         }
 
         $comment = Comment::find($request->id);
         if(!$comment){
-            errNotFound("Comment Not Found");
+            errCommentGet();
         }
 
         $user = Auth::guard('api')->user();
         if($user->id != $comment->userId){
-            errForbidden("You don't have permission to update this comment");
+            errAccessDenied();
         }
 
         $algo = new CommentAlgo($article);
@@ -59,17 +61,17 @@ class CommentController extends Controller
     {
         $article = Article::find($request->articleId);
         if(!$article){
-            errNotFound("Article Not Found");
+            errArticleGet();
         }
 
         $comment = Comment::find($request->id);
         if(!$comment){
-            errNotFound("Comment Not Found");
+            errCommentGet();
         }
 
         $user = Auth::guard('api')->user();
         if($user->id != $comment->userId){
-            errForbidden("You don't have permission to delete this comment");
+            errAccessDenied();
         }
 
         $algo = new CommentAlgo($article);

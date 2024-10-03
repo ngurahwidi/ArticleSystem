@@ -24,7 +24,7 @@ class TagController extends Controller
     {
         $tags = Tag::find($id);
         if(!$tags){
-            errNotFound("Tag Not Found");
+            errTagGet();
         }
 
         return success($tags);
@@ -40,11 +40,11 @@ class TagController extends Controller
     {
         $tag = Tag::find($id);
         if(!$tag){
-            errNotFound("Tag Not Found");
+            errTagGet();
         }
 
         if(Auth::guard('api')->user()->id != $tag->userId){
-            errForbidden("You don't have permission to update this tag");
+            errAccessDenied();
         }
 
         $algo = new TagCategoryAlgo();
@@ -55,11 +55,11 @@ class TagController extends Controller
     {
         $tag = Tag::find($id);
         if(!$tag){
-            errNotFound("Tag Not Found");
+            errTagGet();
         }
 
         if(Auth::guard('api')->user()->id != $tag->userId){
-            errForbidden("You don't have permission to delete this tag");
+            errAccessDenied();
         }
 
         $algo = new ComponentAlgo();

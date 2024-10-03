@@ -4,10 +4,12 @@ namespace App\Algorithms\Comment;
 
 use Illuminate\Http\Request;
 use App\Models\Article\Article;
+use App\Models\Comment\Comment;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Services\Constant\Activity\ActivityAction;
 use App\Services\Misc\SaveActivity;
+use Illuminate\Support\Facades\Auth;
+use App\Parser\Comment\CommentParser;
+use App\Services\Constant\Activity\ActivityAction;
 
 class CommentAlgo
 {
@@ -15,14 +17,7 @@ class CommentAlgo
     public function __construct(public ? Article $article = null)
     {
     }
- 
-    public function get(Request $request)
-    {
-        $comments = $this->article->comments()->with('replies')->get();
-
-        return success($comments);
-    }
-    
+       
     public function create(Request $request)
     {
         
@@ -102,7 +97,7 @@ class CommentAlgo
             $parentComment = $this->article->comments()->where('id', $request->parentId)->first();
 
             if(!$parentComment) {
-                errNotFound('Parent Comment Not Found');
+                errParentNotFound();
             }
         }
     }

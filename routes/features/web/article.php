@@ -12,10 +12,11 @@ $subscriber = RoleUser::SUBSCRIBER_ID;
 
 Route::group(['middleware' => 'auth.api'], function () use ($admin, $author, $subscriber) {
 
+        Route::get("", [ArticleController::class, "get"]);
+        Route::get("{id}", [ArticleController::class, "getById"]);
+
         Route::middleware("auth.role:$admin, $author")
         ->group(function () {
-                Route::get("", [ArticleController::class, "get"]);
-                Route::get("{id}", [ArticleController::class, "getById"]);
                 Route::post("", [ArticleController::class, "create"]);
                 Route::post("{id}/update", [ArticleController::class, "update"]);
                 Route::delete("{id}", [ArticleController::class, "delete"]);

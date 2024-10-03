@@ -25,7 +25,7 @@ class CategoryController extends Controller
         $category = Category::find($id);
 
         if(!$category){
-            errNotFound("Category Not Found");
+            errCategoryGet();
         }
 
         return success($category);
@@ -42,11 +42,11 @@ class CategoryController extends Controller
         $category = Category::find($id);
 
         if(!$category){
-            errNotFound("Category Not Found");
+            errCategoryGet();
         }
 
         if(Auth::guard('api')->user()->id != $category->userId){
-            errForbidden("You don't have permission to update this category");
+            errAccessDenied();
         }
 
         $algo = new TagCategoryAlgo();
@@ -58,11 +58,11 @@ class CategoryController extends Controller
         $category = Category::find($id);
 
         if(!$category){
-            errNotFound("Category Not Found");
+            errCategoryGet();
         }
 
         if(Auth::guard('api')->user()->id != $category->userId){
-            errForbidden("You don't have permission to delete this category");
+            errAccessDenied();
         }
 
         $algo = new ComponentAlgo();

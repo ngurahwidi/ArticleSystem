@@ -29,9 +29,9 @@ class ArticleAlgo
             DB::transaction(function () use ($request) {
                 $this->article = $this->createArticle($request);
 
-                $this->article = $this->uploadFile($request);
+                $this->uploadFile($request);
 
-                $this->article = $this->saveTagCategory($request);
+                $this->saveTagCategory($request);
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new article : {$this->article->title},  [{$this->article->id}]");
@@ -96,7 +96,6 @@ class ArticleAlgo
         $this->article->galleries = $this->saveGallery($request);
         $this->article->filepath = $this->saveFile($request);
         $this->article->save();
-        return $this->article;
     }
 
     private function createArticle($request)
@@ -110,14 +109,14 @@ class ArticleAlgo
         $categories = Category::whereIn('id', $request->categoryIds)->get();
         foreach($categories as $category) {
             if($category->statusId != StatusValidation::PUBLISH_ID) {
-                errArticleValidStatus('You are not authorized to create an article, article category must be publish');
+                errArticleCategory();
             }
         }
 
         $tags = Tag::whereIn('id', $request->tagIds)->get();
         foreach($tags as $tag) {
             if($tag->statusId != StatusValidation::PUBLISH_ID) {
-                errArticleValidStatus('You are not authorized to create an article, article tag must be publish');
+                errArticleTag();
             }
         }
 
@@ -148,14 +147,14 @@ class ArticleAlgo
         $categories = Category::whereIn('id', $request->categoryIds)->get();
         foreach($categories as $category) {
             if($category->statusId != StatusValidation::PUBLISH_ID) {
-                errArticleValidStatus('You are not authorized to create an article, article category must be publish');
+                errArticleCategory();
             }
         }
 
         $tags = Tag::whereIn('id', $request->tagIds)->get();
         foreach($tags as $tag) {
             if($tag->statusId != StatusValidation::PUBLISH_ID) {
-                errArticleValidStatus('You are not authorized to create an article, article tag must be publish');
+                errArticleTag();
             }
         }
 
@@ -199,19 +198,16 @@ class ArticleAlgo
     {
         $this->article->categories()->attach($request->input('categoryIds'));
         $this->article->tags()->attach($request->input('tagIds'));
-        return $this->article;
     }
 
     private function updateTagCategory($request){
         $this->article->categories()->sync($request->input('categoryIds'));
         $this->article->tags()->sync($request->input('tagIds'));
-        return $this->article;
     }
 
     private function deleteTagCategory()
     {
         $this->article->categories()->detach();
-        $this->article->tags()->detach();
-        return $this->article;
+        $this->article->tags()->detach();      
     }
 }

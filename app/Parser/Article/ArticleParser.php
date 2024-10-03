@@ -2,11 +2,12 @@
 
 namespace App\Parser\Article;
 
-use App\Services\Constant\Article\StatusArticle;
-use App\Services\Constant\Global\StatusId;
-use App\Services\Constant\Global\StatusValidation;
 use Carbon\Carbon;
 use GlobalXtreme\Parser\BaseParser;
+use Illuminate\Support\Facades\Storage;
+use App\Services\Constant\Global\StatusId;
+use App\Services\Constant\Article\StatusArticle;
+use App\Services\Constant\Global\StatusValidation;
 
 class ArticleParser extends BaseParser
 {

@@ -14,11 +14,20 @@ if (!function_exists("errStatusNotFound")) {
     }
 }
 
-if (!function_exists("errArticleCreate")) {
-    function  errArticleValidStatus($internalMsg = "", $status = null)
+if (!function_exists("errArticleCategory")) {
+    function errArticleCategory($internalMsg = "", $status = null)
     {
-        error(403, "error", $internalMsg, $status);
+        error(400, "error article category must be publish", $internalMsg, $status);
     }
+
+
+}
+if (!function_exists("errArticleTag")) {
+    function errArticleTag($internalMsg = "", $status = null)
+    {
+        error(400, "error article tag must be publish", $internalMsg, $status);
+    }
+
 }
 
 if (!function_exists("errArticleFavorite")) {
