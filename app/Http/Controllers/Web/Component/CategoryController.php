@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Component;
 
+use App\Services\Constant\User\UserRole;
 use Illuminate\Http\Request;
 use App\Models\Component\Category;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,22 @@ use App\Http\Requests\Component\CategoryRequest;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        $user = Auth::user();
+
+        $this->middleware(function ($request, $next) use ($user) {
+            if (!has_role([UserRole::AUTHOR_ID], $user)) {
+                errAuthentication();
+            }
+        })->only(["create"]);
+
+        $this->middleware(function ($request, $next) use ($user) {
+            if (!has_role([UserRole::ADMIN_ID], $user)) {
+                errAuthentication();
+            }
+        })->only(["update"]);
+    }
 
     public function get(Request $request)
     {
@@ -25,7 +42,7 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
 
-        if(!$category){
+        if (!$category) {
             errCategoryGet();
         }
 
@@ -47,11 +64,11 @@ class CategoryController extends Controller
     public function delete($id)
     {
         $category = Category::find($id);
-        if(!$category){
+        if (!$category) {
             errCategoryGet();
         }
 
-        if(Auth::guard('api')->user()->id != $category->createdBy){
+        if (Auth::guard('api')->user()->id != $category->createdBy) {
             errAccessDenied();
         }
 
