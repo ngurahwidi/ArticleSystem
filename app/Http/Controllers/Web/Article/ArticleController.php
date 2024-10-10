@@ -23,7 +23,7 @@ class ArticleController extends Controller
         return success(ArticleParser::briefs($article));
     }
 
-    public function getById($id, Request $request)
+    public function getById($id)
     {
         $article = Article::find($id);
         if(!$article){
@@ -45,7 +45,7 @@ class ArticleController extends Controller
         return $algo->update($request);
     }
 
-    public function delete($id, Request $request)
+    public function delete($id)
     {
         $algo = new ArticleAlgo((int)$id);
         return $algo->delete();

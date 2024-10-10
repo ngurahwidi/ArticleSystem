@@ -3,6 +3,7 @@
 namespace App\Algorithms\Auth;
 
 use App\Models\User\User;
+use App\Services\Number\BaseNumber;
 use App\Services\Number\Generator\UserNumber;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -87,7 +88,7 @@ class AuthAlgo
     {
 
         if(!in_array($request->roleId, UserRole::ROLE_OPTION)){
-            errNotFound("Role Not Found");
+            errUserRole();
         }
 
         $user = User::create([
@@ -109,7 +110,7 @@ class AuthAlgo
 
     private function uploadProfile(Request $request)
     {
-        if($request->hasFile('file') && $request->file('file')->isValid()) {
+        if($request->hasFile('profile') && $request->file('profile')->isValid()) {
 
             $profile = $request->file('profile');
             $filePath = FileUpload::upload($profile, $request->username, Path::PROFILE);
