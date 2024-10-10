@@ -2,9 +2,8 @@
 
 namespace App\Models\User;
 
-use App\Models\BaseModel;
 use App\Models\Article\Article;
-use App\Models\Comment\Comment;
+use App\Models\Article\Comment;
 use App\Models\Component\Category;
 use App\Parser\User\UserParser;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -34,11 +33,6 @@ class User extends Authenticatable implements JWTSubject
     public function articles()
     {
         return $this->hasMany(Article::class, 'userId');
-    }
-
-    public function categories()
-    {
-        return $this->hasMany(Category::class, 'userId');
     }
 
     public function favorites()

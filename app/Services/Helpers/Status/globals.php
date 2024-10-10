@@ -34,3 +34,10 @@ if (!function_exists("errAccessDenied")) {
         error(403, "Access Denied!", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errValidationStatus")) {
+    function errValidationStatus($internalMsg = "", $status = null)
+    {
+        error(404, "StatusId not found!", $internalMsg, $status);
+    }
+}

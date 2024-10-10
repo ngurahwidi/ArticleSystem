@@ -3,16 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Component\TagController;
 use App\Http\Controllers\Web\Component\CategoryController;
-use App\Services\Constant\User\RoleUser;
+use App\Services\Constant\User\UserRole;
+use App\Http\Controllers\Web\Component\ComponentStatic;
 
-$admin = RoleUser::ADMIN_ID;
-$author = RoleUser::AUTHOR_ID;
+$admin = UserRole::ADMIN_ID;
+$author = UserRole::AUTHOR_ID;
 
 Route::prefix("components")
 ->middleware("auth.api")
 ->group(function () use ($admin, $author) {
-   
-    
+
+
     Route::prefix("categories")
     ->middleware("auth.role:$admin, $author")
     ->group(function () {
@@ -35,3 +36,5 @@ Route::prefix("components")
         Route::delete("{id}", [TagController::class, "delete"]);
     });
 });
+
+Route::get("status", [ComponentStatic::class, "validationStatus"]);

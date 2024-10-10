@@ -2,8 +2,8 @@
 
 namespace App\Parser\User;
 
-use App\Services\Constant\User\RoleUser;
-use App\Services\Constant\User\StatusUser;
+use App\Services\Constant\User\UserRole;
+use App\Services\Constant\User\UserStatus;
 use GlobalXtreme\Parser\BaseParser;
 
 class UserParser extends BaseParser
@@ -19,18 +19,26 @@ class UserParser extends BaseParser
             return null;
         }
 
-        $result = [
+        return [
             'id' => $data->id,
             'username' => $data->username,
+            'number' => $data->number,
             'email' => $data->email,
             'phone' => $data->phone,
-            'profile' => $data->profile,
-            'status' => StatusUser::display($data->statusId),
-            'role' => RoleUser::display($data->roleId),
+            'profile' => parse_link($data->profile),
+            'status' => UserStatus::idName($data->statusId),
+            'role' => UserRole::idName($data->roleId),
             'bio' => $data->bio
         ];
+    }
 
-        return $result;
+    public static function simple($data)
+    {
+        return [
+            'id' => $data->id,
+            'username' => $data->username,
+            'profile' => parse_link($data->profile),
+        ];
     }
 
 }

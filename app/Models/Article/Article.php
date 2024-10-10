@@ -2,21 +2,18 @@
 
 namespace App\Models\Article;
 
-use Carbon\Carbon;
 use App\Models\BaseModel;
 use App\Models\User\User;
 use Illuminate\Support\Str;
 use App\Models\Component\Tag;
 use App\Models\Component\Category;
 use App\Parser\Article\ArticleParser;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Article\Traits\HasActivityArticleProperty;
-use App\Models\Comment\Comment;
 
 class Article extends BaseModel
 {
     use HasActivityArticleProperty;
-    
+
     protected $table = 'articles';
     protected $guarded = ['id'];
 
@@ -28,6 +25,22 @@ class Article extends BaseModel
     ];
 
     public $parserClass = ArticleParser::class;
+
+    /** --- BOOT --- */
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($article) {
+            if ($article->isDirty('title')) {
+                $article->slug = Article::createSlug($article->title,'slug', $article->id);
+            }
+        });
+    }
+
+
+    /** --- RELATIONS --- */
 
     public function users()
     {
@@ -46,13 +59,16 @@ class Article extends BaseModel
 
     public function favoritedBy()
     {
-        return $this->belongsToMany(User::class, 'favorites', 'articleId', 'userId');
+        return $this->belongsToMany(User::class, 'article_favorites', 'articleId', 'userId');
     }
 
     public function comments()
     {
         return $this->hasMany(Comment::class, 'articleId');
     }
+
+
+    /** --- SCOPE --- */
 
     public function scopeFilter($query, $request)
     {
@@ -67,28 +83,22 @@ class Article extends BaseModel
             $query->where('statusId', $request->input('statusId'));
         }
 
-        if ($request->has('fromDate') && $request->has('toDate')) {   
+        if ($request->has('fromDate') && $request->has('toDate')) {
             $query->ofDate('createdAt', $request->fromDate, $request->toDate);
         }
 
-        if($request->has('categoryIds')) {
-            $categoryIds = $request->input('categoryIds');
-
-            if (isset($categoryIds) && is_array($categoryIds)) {
-                $query->whereHas('categories', function($query) use ($categoryIds) {
-                    $query->whereIn('component_article_categories.categoryId', $categoryIds);
-                });
-            }
+        $categoryIds = $request->categoryIds;
+        if($categoryIds != "") {
+            $query->whereHas('categories', function($query) use ($categoryIds) {
+                $query->whereIn('component_article_categories.categoryId', convert_string_to_array($categoryIds));
+            });
         }
 
-        if($request->has('tagIds')) {
-            $tagIds = $request->input('tagIds');
-
-            if (isset($tagIds) && is_array($tagIds)) {
-                $query->whereHas('tags', function($query) use ($tagIds) {
-                    $query->whereIn('component_article_tags.tagId', $tagIds);
-                });
-            }   
+        $tagIds = $request->tagIds;
+        if ($tagIds != "") {
+            $query->whereHas('tags', function($query) use ($tagIds) {
+                $query->whereIn('component_article_tags.tagId', convert_string_to_array($tagIds));
+            });
         }
 
         if($request->has('sort_by_date')) {
@@ -102,16 +112,8 @@ class Article extends BaseModel
         return $query;
     }
 
-    protected static function boot()
-    {
-        parent::boot();
 
-        static::saving(function ($article) {
-            if ($article->isDirty('title')) {
-                $article->slug = Article::createSlug($article->title,'slug', $article->id);
-            }
-        });
-    }
+    /** --- STATIC FUNCTIONS */
 
     public static function createSlug(string $title, string $column = 'slug', $id)
     {
@@ -131,5 +133,20 @@ class Article extends BaseModel
         }
 
         return $slug;
+    }
+
+
+    /** --- FUNCTIONS --- */
+
+    public function galleryLinks()
+    {
+        $result = [];
+        foreach ($this->galleries as $gallery) {
+            if ($link = parse_link($gallery)) {
+                $result[] = $link;
+            }
+        }
+
+        return $result;
     }
 }

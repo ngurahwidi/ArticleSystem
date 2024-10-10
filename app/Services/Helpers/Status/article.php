@@ -7,19 +7,11 @@ if (!function_exists("errArticleGet")) {
     }
 }
 
-if (!function_exists("errStatusNotFound")) {
-    function errStatusNotFound($internalMsg = "", $status = null)
-    {
-        error(404, "StatusId not found!", $internalMsg, $status);
-    }
-}
-
 if (!function_exists("errArticleCategory")) {
     function errArticleCategory($internalMsg = "", $status = null)
     {
         error(400, "error article category must be publish", $internalMsg, $status);
     }
-
 
 }
 if (!function_exists("errArticleTag")) {
@@ -32,6 +24,25 @@ if (!function_exists("errArticleTag")) {
 
 if (!function_exists("errArticleFavorite")) {
     function errArticleFavorite($internalMsg = "", $status = null){
-        error(400, "error article favorite", $internalMsg, $status);
+        error(400, "Article Already Favorited", $internalMsg, $status);
+    }
+}
+
+if (!function_exists("errArticleUnFavorite")) {
+    function errArticleUnFavorite($internalMsg = "", $status = null){
+        error(400, "Article not in Favorites", $internalMsg, $status);
+    }
+}
+
+if (!function_exists("errArticleSave")) {
+    function errArticleSave($internalMsg = "", $status = null){
+        error(400, "Cant save article", $internalMsg, $status);
+    }
+
+}
+
+if (!function_exists("errArticleUpdate")) {
+    function errArticleUpdate($internalMsg = "", $status = null){
+        error(400, "Cant update article", $internalMsg, $status);
     }
 }

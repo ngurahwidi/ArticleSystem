@@ -15,9 +15,10 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$role): Response
     {
-        if (in_array($request->user()->roleId, $role)){
-            return $next($request);
-        }   
-        errAccessDenied();
+        if (!in_array($request->user()->roleId, $role)){
+            errAccessDenied();
+        } 
+          
+        return $next($request);
     }
 }

@@ -25,8 +25,8 @@ class UpdateArticleRequest extends FormRequest
             'title' => 'required|string|max:100',
             'description' => 'required|string|max:170',
             'content' => 'required|string',
-            'filepath' => 'required|file|mimes:jpg,jpeg,png|max:2048',
-            'gallery' => 'array',
+            'featuredImage' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            'galleries' => 'array',
             'statusId' => 'required|integer',
             'categoryIds' => 'required|array',
             'tagIds' => 'required|array'

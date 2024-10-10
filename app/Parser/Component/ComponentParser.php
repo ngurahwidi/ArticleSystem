@@ -3,7 +3,7 @@
 namespace App\Parser\Component;
 
 use GlobalXtreme\Parser\BaseParser;
-use App\Services\Constant\Global\StatusValidation;
+use App\Services\Constant\Global\ValidationStatus;
 
 class ComponentParser extends BaseParser
 {
@@ -18,16 +18,14 @@ class ComponentParser extends BaseParser
             return null;
         }
 
-        $result = [
+        return [
             'id' => $data->id,
             'name' => $data->name,
-            'icon' => $data->icon,
-            'status' => StatusValidation::display($data->statusId),
-            'authorId' => $data->userId,
-            'author' => $data->createdByName,
+            'icon' => parse_link($data->icon),
+            'status' => ValidationStatus::idName($data->statusId),
+            'createdBy' => $data->createdBy,
+            'createdByName' => $data->createdByName,
         ];
-
-        return $result;
     }
 
     public static function brief($data)
@@ -36,14 +34,13 @@ class ComponentParser extends BaseParser
             return null;
         }
 
-        $result = [
+        return [
             'id' => $data->id,
             'name' => $data->name,
-            'icon' => $data->icon,
-            'status' => StatusValidation::display($data->statusId),
+            'icon' => parse_link($data->icon),
+            'status' => ValidationStatus::idName($data->statusId),
         ];
-
-        return $result;
     }
+
 
 }

@@ -2,12 +2,9 @@
 
 namespace App\Parser\Article;
 
-use Carbon\Carbon;
+use App\Parser\User\UserParser;
+use App\Services\Constant\Global\ValidationStatus;
 use GlobalXtreme\Parser\BaseParser;
-use Illuminate\Support\Facades\Storage;
-use App\Services\Constant\Global\StatusId;
-use App\Services\Constant\Article\StatusArticle;
-use App\Services\Constant\Global\StatusValidation;
 
 class ArticleParser extends BaseParser
 {
@@ -22,21 +19,28 @@ class ArticleParser extends BaseParser
             return null;
         }
 
-        $result = [
+        return [
             'id' => $data->id,
             'title' => $data->title,
-            'userId' => $data->userId,
+            'user' => UserParser::simple($data->users),
             'description' => $data->description,
             'content' => $data->content,
-            'galleries' => $data->galleries,
-            'status' => StatusValidation::display($data->statusId),
-            'categories' => $data->categories->pluck('name'),
-            'tags' => $data->tags->pluck('name'),
-            'author' => $data->createdByName,
-            'comments' => $data->comments,
+            'galleries' => $data->galleryLinks(),
+            'featuredImage' => parse_link($data->featuredImage),
+            'status' => ValidationStatus::idName($data->statusId),
+            'categories' => $data->categories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                ];
+            }),
+            'tags' => $data->tags->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                ];
+            }),
         ];
-
-        return $result;
 
     }
 
@@ -46,15 +50,14 @@ class ArticleParser extends BaseParser
             return null;
         }
 
-        $result = [
+        return [
             'id' => $data->id,
             'title' => $data->title,
             'description' => $data->description,
-            'image' => $data->filepath,
-            'status' => $data->statusId
+            'featuredImage' => parse_link($data->featuredImage),
+            'status' => ValidationStatus::idName($data->statusId),
+            'popular' => $data->popular,
         ];
-
-        return $result;
     }
 
 }

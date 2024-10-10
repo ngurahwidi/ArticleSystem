@@ -2,34 +2,46 @@
 
 namespace App\Algorithms\Article;
 
-use Illuminate\Http\Request;
-use App\Models\Component\Tag;
-use App\Models\Article\Article;
-use App\Models\Component\Category;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use App\Services\Constant\Global\StatusId;
-use App\Services\Constant\Article\StatusArticle;
-use App\Services\Constant\Activity\ActivityAction;
-use App\Services\Constant\Global\StatusValidation;
 use App\Http\Requests\Article\CreateArticleRequest;
 use App\Http\Requests\Article\UpdateArticleRequest;
+use App\Models\Article\Article;
+use App\Models\Component\Category;
+use App\Models\Component\Tag;
+use App\Services\Constant\Activity\ActivityAction;
+use App\Services\Constant\Global\Path;
+use App\Services\Constant\Global\ValidationStatus;
 use App\Services\Misc\FileUpload;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ArticleAlgo
 {
-    public function __construct(public ? Article $article = null) 
+    public function __construct(public Article|int|null $article = null)
     {
+        if(is_int($this->article)) {
+            $this->article = Article::find($this->article);
+            if(!$this->article) {
+                errArticleGet();
+            }
+
+            if(Auth::guard('api')->user()->id != $this->article->userId){
+                errAccessDenied();
+            }
+        }
     }
 
     public function create(CreateArticleRequest $request)
     {
         try {
-            
+
             DB::transaction(function () use ($request) {
+
                 $this->article = $this->createArticle($request);
 
-                $this->uploadFile($request);
+                $this->uploadFeaturedImage($request);
+
+                $this->uploadGallery($request);
 
                 $this->saveTagCategory($request);
 
@@ -46,14 +58,16 @@ class ArticleAlgo
     public function update(UpdateArticleRequest $request)
     {
         try {
-            
+
             DB::transaction(function () use ($request) {
 
                 $this->article->setOldActivityPropertyAttributes(ActivityAction::UPDATE);
 
                 $this->updateArticle($request);
 
-                $this->uploadFile($request);
+                $this->uploadFeaturedImage($request);
+
+                $this->uploadGallery($request);
 
                 $this->updateTagCategory($request);
 
@@ -71,14 +85,14 @@ class ArticleAlgo
     public function delete()
     {
         try {
-            
+
             DB::transaction(function () {
-                
+
                 $this->article->setOldActivityPropertyAttributes(ActivityAction::DELETE);
 
                 $this->article->delete();
 
-                $this->article = $this->deleteTagCategory();
+                $this->deleteTagCategory();
 
                 $this->article->setActivityPropertyAttributes(ActivityAction::DELETE)
                     ->saveActivity("Delete article : {$this->article->title},  [{$this->article->id}]");
@@ -91,31 +105,24 @@ class ArticleAlgo
         }
     }
 
-    private function uploadFile($request)
-    {
-        $this->article->galleries = $this->saveGallery($request);
-        $this->article->filepath = $this->saveFile($request);
-        $this->article->save();
-    }
-
     private function createArticle($request)
-    {     
+    {
         $user = Auth::guard('api')->user();
 
-        if (!in_array($request->statusId,StatusValidation::VALIDATION_STATUS)) {
-            errStatusNotFound();
+        if (!in_array($request->statusId,ValidationStatus::VALIDATION_STATUS)) {
+            errValidationStatus();
         }
 
         $categories = Category::whereIn('id', $request->categoryIds)->get();
         foreach($categories as $category) {
-            if($category->statusId != StatusValidation::PUBLISH_ID) {
+            if($category->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleCategory();
             }
         }
 
         $tags = Tag::whereIn('id', $request->tagIds)->get();
         foreach($tags as $tag) {
-            if($tag->statusId != StatusValidation::PUBLISH_ID) {
+            if($tag->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleTag();
             }
         }
@@ -127,71 +134,75 @@ class ArticleAlgo
             'description' => $request->description,
             'content' => $request->content,
             'statusId' => $request->statusId,
-            'createdBy' => $user->id,
-            'createdByName' => $user->username
         ]);
-
-        
+        if(!$article) {
+            errArticleSave();
+        }
 
         return $article;
     }
 
     private function updateArticle($request)
     {
-        $user = Auth::guard('api')->user();
 
-        if (!in_array($request->statusId, StatusValidation::VALIDATION_STATUS)) {
-            errStatusNotFound();
+        if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
+            errValidationStatus();
         }
 
         $categories = Category::whereIn('id', $request->categoryIds)->get();
         foreach($categories as $category) {
-            if($category->statusId != StatusValidation::PUBLISH_ID) {
+            if($category->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleCategory();
             }
         }
 
         $tags = Tag::whereIn('id', $request->tagIds)->get();
         foreach($tags as $tag) {
-            if($tag->statusId != StatusValidation::PUBLISH_ID) {
+            if($tag->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleTag();
             }
         }
 
-        $this->article->update([
+        $article = $this->article->update([
             'title' => $request->title,
             'slug' => Article::createSlug($request->title, 'slug', $request->id),
-            'userId' => $user->id,
             'description' => $request->description,
             'content' => $request->content,
             'statusId' => $request->statusId,
-            'createdBy' => $user->id,
-            'createdByName' => $user->username
-            
-        ]);   
+
+        ]);
+        if(!$article) {
+            errArticleUpdate();
+        }
     }
 
-    private function saveFile($request)
+    private function uploadFeaturedImage($request)
     {
-        if($request->hasFile('filepath')) {
-            $file = $request->file('filepath');
-            $title = $request->input('title');
-            return FileUpload::upload($file, $title, 'uploads/article'); 
-        }     
+        if($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
+
+            $file = $request->file('featuredImage');
+            $filePath = FileUpload::upload($file, $request->title, Path::ARTICLE);
+        }
+
+        $this->article->featuredImage = $filePath;
+        $this->article->save();
+        return $this->article?->featuredImage ?: null;
     }
 
-    private function saveGallery(Request $request)
+    private function uploadGallery(Request $request)
     {
         $imagePaths = [];
 
         if($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $image) {
-                $title = $request->input('title');
-                
-                $imagePaths[] = FileUpload::upload($image, $title, 'uploads/article/gallery');
+
+                $imagePaths[] = FileUpload::upload($image, $request->title, PATH::ARTICLE_GALLERY);
             }
         }
-        return $imagePaths;
+
+        $this->article->galleries = $imagePaths;
+        $this->article->save();
+        return $this->article?->galleries ?: null;
     }
 
     private function saveTagCategory($request)
@@ -208,6 +219,6 @@ class ArticleAlgo
     private function deleteTagCategory()
     {
         $this->article->categories()->detach();
-        $this->article->tags()->detach();      
+        $this->article->tags()->detach();
     }
 }

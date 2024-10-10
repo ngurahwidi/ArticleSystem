@@ -1,14 +1,14 @@
 <?php
 
 use App\Http\Controllers\Web\Article\ArticleController;
-use App\Http\Controllers\Web\Comment\CommentController;
-use App\Http\Controllers\Web\Favorite\FavoriteController;
-use App\Services\Constant\User\RoleUser;
+use App\Http\Controllers\Web\Article\CommentController;
+use App\Http\Controllers\Web\Article\FavoriteController;
+use App\Services\Constant\User\UserRole;
 use Illuminate\Support\Facades\Route;
 
-$admin = RoleUser::ADMIN_ID;
-$author = RoleUser::AUTHOR_ID;
-$subscriber = RoleUser::SUBSCRIBER_ID;
+$admin = UserRole::ADMIN_ID;
+$author = UserRole::AUTHOR_ID;
+$subscriber = UserRole::SUBSCRIBER_ID;
 
 Route::group(['middleware' => 'auth.api'], function () use ($admin, $author, $subscriber) {
 
@@ -21,19 +21,19 @@ Route::group(['middleware' => 'auth.api'], function () use ($admin, $author, $su
                 Route::post("{id}/update", [ArticleController::class, "update"]);
                 Route::delete("{id}", [ArticleController::class, "delete"]);
         });
-       
+
         //Favorite
         Route::middleware("auth.role:$admin, $subscriber")
         ->group(function () {
-                Route::post("{articleId}/favorites", [FavoriteController::class, "favorite"]);
-                Route::delete("{articleId}/favorites", [FavoriteController::class, "unfavorite"]);
+                Route::post("{id}/favorites", [FavoriteController::class, "favorite"]);
+                Route::delete("{id}/favorites", [FavoriteController::class, "unfavorite"]);
         });
-        
+
         //Comment
-        Route::get("{articleId}/comments", [CommentController::class, "get"]);
-        Route::post("{articleId}/comments", [CommentController::class, "create"]);
-        Route::post("{articleId}/comments/{id}/update", [CommentController::class, "update"]);
-        Route::delete("{articleId}/comments/{id}", [CommentController::class, "delete"]);
+        Route::get("{id}/comments", [CommentController::class, "get"]);
+        Route::post("{id}/comments", [CommentController::class, "create"]);
+        Route::post("{id}/comments/{commentId}/update", [CommentController::class, "update"]);
+        Route::delete("{id}/comments/{commentId}", [CommentController::class, "delete"]);
 });
-       
+
 

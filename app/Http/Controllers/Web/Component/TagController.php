@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Component\Tag;
 use App\Http\Controllers\Controller;
 use App\Parser\Component\ComponentParser;
-use App\Algorithms\Component\TagCategoryAlgo;
+use App\Algorithms\Component\ComponentTagAlgo;
 use App\Http\Requests\Component\TagRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,7 +20,7 @@ class TagController extends Controller
         return success(ComponentParser::briefs($tags));
     }
 
-    public function getById($id, Request $request)
+    public function getById($id)
     {
         $tags = Tag::find($id);
         if(!$tags){
@@ -32,23 +32,14 @@ class TagController extends Controller
 
     public function create(TagRequest $request)
     {
-        $algo = new TagCategoryAlgo();
-        return $algo->create(Tag::class, $request);
+        $algo = new ComponentTagAlgo();
+        return $algo->create($request);
     }
 
     public function update($id, TagRequest $request)
     {
-        $tag = Tag::find($id);
-        if(!$tag){
-            errTagGet();
-        }
-
-        if(Auth::guard('api')->user()->id != $tag->userId){
-            errAccessDenied();
-        }
-
-        $algo = new TagCategoryAlgo();
-        return $algo->update($tag, $request);
+        $algo = new ComponentTagAlgo((int)$id);
+        return $algo->update($request);
     }
 
     public function delete($id)
@@ -58,7 +49,7 @@ class TagController extends Controller
             errTagGet();
         }
 
-        if(Auth::guard('api')->user()->id != $tag->userId){
+        if(Auth::guard('api')->user()->id != $tag->createdBy){
             errAccessDenied();
         }
 

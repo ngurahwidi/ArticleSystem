@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Str;
+use App\Services\Constant\Global\Path;
+use Illuminate\Support\Facades\Storage;
+
 
 if (!function_exists('filename')) {
 
@@ -101,4 +104,19 @@ if (!function_exists("storage_link")) {
         return config('base.conf.storage-link') . $path;
     }
 
+}
+
+if (!function_exists("parse_link")) {
+    function parse_link(string $path)
+    {
+        if (!$path) {
+            return null;
+        }
+
+        if (!file_exists(Path::STORAGE_PUBLIC_PATH($path))) {
+            return null;
+        }
+
+        return Storage::url($path);
+    }   
 }

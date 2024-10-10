@@ -3,7 +3,6 @@
 namespace App\Services\Misc;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class FileUpload
 {
@@ -13,7 +12,12 @@ class FileUpload
         $lowerTitle = strtolower($sanitizedTitle);
         $extension = $file->getClientOriginalExtension();
         $filename = $lowerTitle.'.'.$extension;
+
         $filePath = $file->storeAs($path, $filename, 'public');
-        return Storage::url($filePath);
+        if(!$filePath) {
+            errUnableToUploadFile();
+        }
+
+        return $path . $filename;
     }
 }

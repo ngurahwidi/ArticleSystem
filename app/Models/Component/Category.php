@@ -6,7 +6,6 @@ use App\Models\BaseModel;
 use App\Models\User\User;
 use App\Models\Article\Article;
 use App\Parser\Component\ComponentParser;
-use Illuminate\Console\View\Components\Component;
 use App\Models\Component\Traits\HasActivityComponentProperty;
 
 class Category extends BaseModel
