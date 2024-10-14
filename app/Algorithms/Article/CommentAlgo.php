@@ -13,8 +13,13 @@ use App\Services\Constant\Activity\ActivityType;
 class CommentAlgo
 {
 
+    protected $user;
+
     public function __construct(public Article|int|null $article = null, protected Comment|int|null $comment = null)
     {
+
+        $this->user = Auth::user();
+
         if(is_int($this->article)) {
             $this->article = Article::find($this->article);
             if(!$this->article) {
@@ -28,7 +33,7 @@ class CommentAlgo
                 errCommentGet();
             }
 
-            if(Auth::guard('api')->user()->id != $this->comment->userId){
+            if($this->user->id != $this->comment->userId){
                 errAccessDenied();
             }
         }
@@ -41,7 +46,7 @@ class CommentAlgo
 
             DB::transaction(function () use ($request) {
 
-                $this->validateParentId($request);
+                $this->validateCommentParentId($request);
 
                 $comment =$this->createComment($request);
 
@@ -100,10 +105,8 @@ class CommentAlgo
     private function createComment(Request $request)
     {
 
-        $user = Auth::guard('api')->user();
-
         $comment = $this->article->comments()->create([
-            'userId' => $user->id,
+            'userId' => $this->user->id,
             'comment' => $request->comment,
             'parentId' => $request->parentId
         ]);
@@ -124,12 +127,12 @@ class CommentAlgo
         }
     }
 
-    private function validateParentId(Request $request)
+    private function validateCommentParentId(Request $request)
     {
         if($request->filled('parentId')) {
             $parentComment = $this->article->comments()->where('id', $request->parentId)->first();
             if(!$parentComment) {
-                errParentNotFound();
+                errCommentParentGet();
             }
         }
     }

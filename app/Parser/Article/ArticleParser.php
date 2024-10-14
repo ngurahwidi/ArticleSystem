@@ -22,7 +22,7 @@ class ArticleParser extends BaseParser
         return [
             'id' => $data->id,
             'title' => $data->title,
-            'user' => UserParser::simple($data->users),
+            'user' => UserParser::simple($data->user),
             'description' => $data->description,
             'content' => $data->content,
             'galleries' => $data->galleryLinks(),

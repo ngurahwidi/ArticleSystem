@@ -10,8 +10,14 @@ use App\Services\Constant\Activity\ActivityAction;
 
 class FavoriteAlgo
 {
+
+    protected $user;
+
     public function __construct(public Article|int|null $article = null)
     {
+
+        $this->user = Auth::user();
+
         if(is_int($this->article)) {
             $this->article = Article::find($this->article);
             if(!$this->article) {
@@ -26,11 +32,11 @@ class FavoriteAlgo
 
             DB::transaction(function () {
 
-                if ($this->article->favoritedBy()->where('userId', Auth::guard('api')->user()->id)->exists()) {
+                if ($this->article->articleFavoritedCheck()){
                     errArticleFavorite();
                 }
 
-                $this->article->favoritedBy()->attach(Auth::guard('api')->user()->id);
+                $this->article->favoritedBy()->attach($this->user->id);
 
                 $this->article->increment('popular');
 
@@ -50,11 +56,11 @@ class FavoriteAlgo
 
                 $this->article->setOldActivityPropertyAttributes(ActivityAction::DELETE);
 
-                if (!$this->article->favoritedBy()->where('userId', Auth::guard('api')->user()->id)->exists()) {
+                if (!$this->article->articleFavoritedCheck()) {
                     errArticleUnFavorite();
                 }
 
-                $this->article->favoritedBy()->detach(Auth::guard('api')->user()->id);
+                $this->article->favoritedBy()->detach($this->user->id);
 
                 $this->article->decrement('popular');
 

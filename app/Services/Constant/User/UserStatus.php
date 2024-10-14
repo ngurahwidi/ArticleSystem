@@ -8,7 +8,6 @@ class UserStatus extends BaseIDName
 {
     const ACTIVE_ID = 1;
     const ACTIVE = 'active';
-
     const INACTIVE_ID = 2;
     const INACTIVE = 'inactive';
 

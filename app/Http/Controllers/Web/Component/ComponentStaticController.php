@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Constant\Global\ValidationStatus;
 
-class ComponentStatic extends Controller
+class ComponentStaticController extends Controller
 {
     public function validationStatus()
     {

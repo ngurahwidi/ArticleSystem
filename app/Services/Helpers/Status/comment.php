@@ -1,7 +1,7 @@
 <?php
 
-if (!function_exists("errParentNotFound")) {
-    function errParentNotFound($internalMsg = "", $status =  null)
+if (!function_exists("errCommentParentGet")) {
+    function errCommentParentGet($internalMsg = "", $status =  null)
     {
         error(404, "Parent comment not found!", $internalMsg, $status);
     }

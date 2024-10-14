@@ -11,21 +11,28 @@ use App\Services\Constant\Activity\ActivityAction;
 use App\Services\Constant\Global\Path;
 use App\Services\Constant\Global\ValidationStatus;
 use App\Services\Misc\FileUpload;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ArticleAlgo
 {
+
+    protected $user;
+
     public function __construct(public Article|int|null $article = null)
     {
+
+        $this->user = Auth::user();
+
         if(is_int($this->article)) {
             $this->article = Article::find($this->article);
             if(!$this->article) {
                 errArticleGet();
             }
 
-            if(Auth::guard('api')->user()->id != $this->article->userId){
+            if($this->user->id != $this->article->userId){
                 errAccessDenied();
             }
         }
@@ -36,6 +43,10 @@ class ArticleAlgo
         try {
 
             DB::transaction(function () use ($request) {
+
+                $this->findArticleCategoryStatus($request);
+
+                $this->findArticleTagStatus($request);
 
                 $this->article = $this->createArticle($request);
 
@@ -50,7 +61,7 @@ class ArticleAlgo
             });
 
             return success($this->article);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             exception($exception);
         }
     }
@@ -62,6 +73,10 @@ class ArticleAlgo
             DB::transaction(function () use ($request) {
 
                 $this->article->setOldActivityPropertyAttributes(ActivityAction::UPDATE);
+
+                $this->findArticleCategoryStatus($request);
+
+                $this->findArticleTagStatus($request);
 
                 $this->updateArticle($request);
 
@@ -77,7 +92,7 @@ class ArticleAlgo
 
             return success($this->article->fresh());
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             exception($exception);
         }
     }
@@ -100,37 +115,22 @@ class ArticleAlgo
 
             return success();
 
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             exception($exception);
         }
     }
 
     private function createArticle($request)
     {
-        $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId,ValidationStatus::VALIDATION_STATUS)) {
             errValidationStatus();
         }
 
-        $categories = Category::whereIn('id', $request->categoryIds)->get();
-        foreach($categories as $category) {
-            if($category->statusId != ValidationStatus::PUBLISH_ID) {
-                errArticleCategory();
-            }
-        }
-
-        $tags = Tag::whereIn('id', $request->tagIds)->get();
-        foreach($tags as $tag) {
-            if($tag->statusId != ValidationStatus::PUBLISH_ID) {
-                errArticleTag();
-            }
-        }
-
         $article = Article::create([
             'title' => $request->title,
             'slug' => Article::createSlug($request->title,'slug', $request->id),
-            'userId' => $user->id,
+            'userId' => $this->user->id,
             'description' => $request->description,
             'content' => $request->content,
             'statusId' => $request->statusId,
@@ -149,28 +149,7 @@ class ArticleAlgo
             errValidationStatus();
         }
 
-        $categories = Category::whereIn('id', $request->categoryIds)->get();
-        foreach($categories as $category) {
-            if($category->statusId != ValidationStatus::PUBLISH_ID) {
-                errArticleCategory();
-            }
-        }
-
-        $tags = Tag::whereIn('id', $request->tagIds)->get();
-        foreach($tags as $tag) {
-            if($tag->statusId != ValidationStatus::PUBLISH_ID) {
-                errArticleTag();
-            }
-        }
-
-        $article = $this->article->update([
-            'title' => $request->title,
-            'slug' => Article::createSlug($request->title, 'slug', $request->id),
-            'description' => $request->description,
-            'content' => $request->content,
-            'statusId' => $request->statusId,
-
-        ]);
+        $article = $this->article->update($request->all());
         if(!$article) {
             errArticleUpdate();
         }
@@ -178,15 +157,17 @@ class ArticleAlgo
 
     private function uploadFeaturedImage($request)
     {
+
         if($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
 
             $file = $request->file('featuredImage');
             $filePath = FileUpload::upload($file, $request->title, Path::ARTICLE);
+            $this->article->featuredImage = $filePath;
         }
 
-        $this->article->featuredImage = $filePath;
+        unset($request->featuredImage);
+
         $this->article->save();
-        return $this->article?->featuredImage ?: null;
     }
 
     private function uploadGallery(Request $request)
@@ -197,12 +178,13 @@ class ArticleAlgo
             foreach ($request->file('galleries') as $image) {
 
                 $imagePaths[] = FileUpload::upload($image, $request->title, PATH::ARTICLE_GALLERY);
+                $this->article->galleries = $imagePaths;
             }
         }
 
-        $this->article->galleries = $imagePaths;
+        unset($request->galleries);
+
         $this->article->save();
-        return $this->article?->galleries ?: null;
     }
 
     private function saveTagCategory($request)
@@ -211,7 +193,8 @@ class ArticleAlgo
         $this->article->tags()->attach($request->input('tagIds'));
     }
 
-    private function updateTagCategory($request){
+    private function updateTagCategory($request)
+    {
         $this->article->categories()->sync($request->input('categoryIds'));
         $this->article->tags()->sync($request->input('tagIds'));
     }
@@ -220,5 +203,29 @@ class ArticleAlgo
     {
         $this->article->categories()->detach();
         $this->article->tags()->detach();
+    }
+
+    private function findArticleCategoryStatus($request)
+    {
+
+        $categories = Category::whereIn('id', $request->categoryIds)->get();
+        foreach($categories as $category) {
+            if($category->statusId != ValidationStatus::PUBLISH_ID) {
+                errArticleCategory();
+            }
+        }
+
+        return $categories;
+    }
+
+    private function findArticleTagStatus($request)
+    {
+
+        $tags = Tag::whereIn('id', $request->tagIds)->get();
+        foreach($tags as $tag) {
+            if ($tag->statusId != ValidationStatus::PUBLISH_ID) {
+                errArticleTag();
+            }
+        }
     }
 }

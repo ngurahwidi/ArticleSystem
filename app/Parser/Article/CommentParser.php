@@ -17,10 +17,10 @@ class CommentParser extends BaseParser
         if (!$data) {
             return null;
         }
-    
+
             return [
                 'id' => $data->id,
-                'user' => UserParser::simple($data->users),
+                'user' => UserParser::simple($data->user),
                 'comment' => $data->comment,
                 'replies' => self::replies($data->replies),
             ];
@@ -38,7 +38,7 @@ class CommentParser extends BaseParser
         foreach ($subs as $sub) {
             $result[] = [
                 'id' => $sub->id,
-                'user' => UserParser::simple($sub->users),
+                'user' => UserParser::simple($sub->user),
                 'content' => $sub->comment,
                 'replies' => self::replies($sub->replies),
             ];

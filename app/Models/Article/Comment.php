@@ -20,7 +20,7 @@ class Comment extends BaseModel
 
     public $parserClass = CommentParser::class;
 
-    public function users()
+    public function user()
     {
         return $this->belongsTo(User::class, 'userId');
     }

@@ -14,15 +14,20 @@ use App\Services\Misc\FileUpload;
 class ComponentTagAlgo
 {
 
+    protected $user;
+
     public function __construct (public Tag|int|null $tag = null)
     {
+
+        $this->user = Auth::user();
+
         if(is_int($this->tag)) {
             $this->tag = Tag::find($this->tag);
             if(!$this->tag) {
                 errTagGet();
             }
 
-            if(Auth::guard('api')->user()->id != $this->tag->createdBy) {
+            if($this->user->id != $this->tag->createdBy) {
                 errAccessDenied();
             }
         }
@@ -56,6 +61,8 @@ class ComponentTagAlgo
 
                 $this->updateTag($request);
 
+                $this->deleteIcon($request);
+
                 $this->uploadIcon($request);
 
                 $this->tag->setActivityPropertyAttributes(ActivityAction::UPDATE)
@@ -71,7 +78,6 @@ class ComponentTagAlgo
 
     private function createTag ($request)
     {
-        $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
             errValidationStatus();
@@ -80,8 +86,8 @@ class ComponentTagAlgo
         $tag = Tag::create([
             'name' => $request->name,
             'statusId' => $request->statusId,
-            'createdBy' => $user->id,
-            'createdByName' => $user->username
+            'createdBy' => $this->user->id,
+            'createdByName' => $this->user->username
         ]);
         if(!$tag) {
             errTagSave();
@@ -97,10 +103,7 @@ class ComponentTagAlgo
             errValidationStatus();
         }
 
-        $tag = $this->tag->update([
-            'name' => $request->name,
-            'statusId' => $request->statusId,
-        ]);
+        $tag = $this->tag->update($request->all());
         if(!$tag) {
             errTagUpdate();
         }
@@ -112,10 +115,25 @@ class ComponentTagAlgo
 
             $icon = $request->file('icon');
             $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_TAG);
+            $this->tag->icon = $filePath;
         }
 
-        $this->tag->icon = $filePath;
+        unset($request->icon);
+
         $this->tag->save();
-        return $this->tag?->icon ?: null;
+    }
+
+    private function deleteIcon ($request)
+    {
+
+        if ($request->has('deleteIcon') && $request->input('deleteIcon') === 'true') {
+
+            $oldIconPath = $this->tag->icon;
+            if (file_exists($oldIconPath)) {
+                unlink($oldIconPath);
+            }
+
+            $this->tag->icon = null;
+        }
     }
 }

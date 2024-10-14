@@ -14,15 +14,20 @@ use App\Services\Misc\FileUpload;
 class ComponentCategoryAlgo
 {
 
+    protected $user;
+
     public function __construct (public Category|int|null $category = null)
     {
+
+        $this->user = Auth::user();
+
         if(is_int($this->category)) {
             $this->category = Category::find($this->category);
             if(!$this->category) {
                 errCategoryGet();
             }
 
-            if(Auth::guard('api')->user()->id != $this->category->createdBy) {
+            if($this->user->id != $this->category->createdBy) {
                 errAccessDenied();
             }
         }
@@ -32,6 +37,7 @@ class ComponentCategoryAlgo
     {
         try {
             DB::transaction(function () use ($request) {
+
                 $this->category = $this->createCategory($request);
 
                 $this->uploadIcon($request);
@@ -71,7 +77,6 @@ class ComponentCategoryAlgo
 
     private function createCategory ($request)
     {
-        $user = Auth::guard('api')->user();
 
         if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
             errValidationStatus();
@@ -80,8 +85,8 @@ class ComponentCategoryAlgo
         $category = Category::create([
             'name' => $request->name,
             'statusId' => $request->statusId,
-            'createdBy' => $user->id,
-            'createdByName' => $user->username
+            'createdBy' => $this->user->id,
+            'createdByName' => $this->user->username
         ]);
         if(!$category) {
             errCategorySave();
@@ -97,10 +102,7 @@ class ComponentCategoryAlgo
             errValidationStatus();
         }
 
-        $category = $this->category->update([
-            'name' => $request->name,
-            'statusId' => $request->statusId,
-        ]);
+        $category = $this->category->update($request->all());
         if(!$category) {
             errCategoryUpdate();
         }
@@ -112,11 +114,11 @@ class ComponentCategoryAlgo
 
             $icon = $request->file('icon');
             $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_CATEGORY);
+            $this->category->icon = $filePath;
         }
 
+        unset($request->icon);
 
-        $this->category->icon = $filePath;
         $this->category->save();
-        return $this->category?->icon ?: null;
     }
 }

@@ -8,10 +8,8 @@ class ValidationStatus extends BaseIDName
 {
     const DRAFT_ID = 1;
     const DRAFT = 'Draft';
-
     const PUBLISH_ID = 2;
     const PUBLISH = 'Publish';
-
     const ARCHIVED_ID = 3;
     const ARCHIVED = 'Archived';
 

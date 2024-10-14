@@ -107,7 +107,7 @@ if (!function_exists("storage_link")) {
 }
 
 if (!function_exists("parse_link")) {
-    function parse_link(string $path)
+    function parse_link($path)
     {
         if (!$path) {
             return null;
@@ -118,5 +118,5 @@ if (!function_exists("parse_link")) {
         }
 
         return Storage::url($path);
-    }   
+    }
 }

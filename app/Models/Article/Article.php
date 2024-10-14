@@ -4,6 +4,8 @@ namespace App\Models\Article;
 
 use App\Models\BaseModel;
 use App\Models\User\User;
+use App\Services\Constant\Global\ValidationStatus;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Models\Component\Tag;
 use App\Models\Component\Category;
@@ -42,7 +44,7 @@ class Article extends BaseModel
 
     /** --- RELATIONS --- */
 
-    public function users()
+    public function user()
     {
         return $this->belongsTo(User::class, 'userId');
     }
@@ -148,5 +150,12 @@ class Article extends BaseModel
         }
 
         return $result;
+    }
+
+    public function articleFavoritedCheck()
+    {
+
+        return $this->favoritedBy()->where('userId', Auth::guard('api')->user()->id)->exists();
+
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Algorithms\Auth;
 
 use App\Models\User\User;
-use App\Services\Number\BaseNumber;
 use App\Services\Number\Generator\UserNumber;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -50,12 +49,12 @@ class AuthAlgo
     {
         try {
 
-            $token = Auth::guard('api')->attempt($request->only('email', 'password'));
+            $token = Auth::attempt($request->only('email', 'password'));
             if (!$token) {
                 errCredentialIncorrect("Please check your email or password!!");
             }
 
-            $user = Auth::guard('api')->user();
+            $user = Auth::user();
             if (!$user) {
                 errUnauthenticated("Can\'t get the user data!!");
             }
@@ -114,10 +113,9 @@ class AuthAlgo
 
             $profile = $request->file('profile');
             $filePath = FileUpload::upload($profile, $request->username, Path::PROFILE);
+            $this->user->profile = $filePath;
         }
 
-        $this->user->profile = $filePath;
         $this->user->save();
-        return $this->user?->profile ?: null;
     }
 }

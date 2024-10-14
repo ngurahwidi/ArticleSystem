@@ -3,19 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Component\TagController;
 use App\Http\Controllers\Web\Component\CategoryController;
-use App\Services\Constant\User\UserRole;
-use App\Http\Controllers\Web\Component\ComponentStatic;
+use App\Http\Controllers\Web\Component\ComponentStaticController;
 
-$admin = UserRole::ADMIN_ID;
-$author = UserRole::AUTHOR_ID;
 
 Route::prefix("components")
 ->middleware("auth.api")
-->group(function () use ($admin, $author) {
+->group(function () {
 
 
     Route::prefix("categories")
-    ->middleware("auth.role:$admin, $author")
     ->group(function () {
 
         Route::get("", [CategoryController::class, "get"]);
@@ -26,7 +22,6 @@ Route::prefix("components")
     });
 
     Route::prefix("tags")
-    ->middleware("auth.role:$admin, $author")
     ->group(function () {
 
         Route::get("", [TagController::class, "get"]);
@@ -37,4 +32,4 @@ Route::prefix("components")
     });
 });
 
-Route::get("status", [ComponentStatic::class, "validationStatus"]);
+Route::get("status", [ComponentStaticController::class, "validationStatus"]);
