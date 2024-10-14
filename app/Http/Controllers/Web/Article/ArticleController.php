@@ -26,6 +26,7 @@ class ArticleController extends Controller
             return $next($request);
         })->except(["get", "getById"]);
     }
+
     public function get(Request $request)
     {
 

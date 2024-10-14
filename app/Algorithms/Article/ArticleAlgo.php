@@ -26,13 +26,13 @@ class ArticleAlgo
 
         $this->user = Auth::user();
 
-        if(is_int($this->article)) {
+        if (is_int($this->article)) {
             $this->article = Article::find($this->article);
-            if(!$this->article) {
+            if (!$this->article) {
                 errArticleGet();
             }
 
-            if($this->user->id != $this->article->userId){
+            if ($this->user->id != $this->article->userId) {
                 errAccessDenied();
             }
         }
@@ -123,19 +123,19 @@ class ArticleAlgo
     private function createArticle($request)
     {
 
-        if (!in_array($request->statusId,ValidationStatus::VALIDATION_STATUS)) {
+        if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
             errValidationStatus();
         }
 
         $article = Article::create([
             'title' => $request->title,
-            'slug' => Article::createSlug($request->title,'slug', $request->id),
+            'slug' => Article::createSlug($request->title, 'slug', $request->id),
             'userId' => $this->user->id,
             'description' => $request->description,
             'content' => $request->content,
             'statusId' => $request->statusId,
         ]);
-        if(!$article) {
+        if (!$article) {
             errArticleSave();
         }
 
@@ -150,7 +150,7 @@ class ArticleAlgo
         }
 
         $article = $this->article->update($request->all());
-        if(!$article) {
+        if (!$article) {
             errArticleUpdate();
         }
     }
@@ -158,7 +158,7 @@ class ArticleAlgo
     private function uploadFeaturedImage($request)
     {
 
-        if($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
+        if ($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
 
             $file = $request->file('featuredImage');
             $filePath = FileUpload::upload($file, $request->title, Path::ARTICLE);
@@ -172,17 +172,29 @@ class ArticleAlgo
 
     private function uploadGallery(Request $request)
     {
-        $imagePaths = [];
+        $imagePaths = $this->article->galleries ?: [];
 
-        if($request->hasFile('galleries')) {
+        foreach ($request->deletedGalleries ?: [] as $deletedGallery) {
+            foreach ($imagePaths as $key => $imagePath) {
+                if ($deletedGallery != $imagePath) {
+                    continue;
+                }
+
+                if (file_exists(Path::STORAGE_PUBLIC_PATH($deletedGallery))) {
+                    unlink($deletedGallery);
+                }
+
+                unset($imagePaths[$key]);
+            }
+        }
+
+        $imagePaths = array_values($imagePaths);
+        if ($request->hasFile('galleries')) {
             foreach ($request->file('galleries') as $image) {
-
                 $imagePaths[] = FileUpload::upload($image, $request->title, PATH::ARTICLE_GALLERY);
                 $this->article->galleries = $imagePaths;
             }
         }
-
-        unset($request->galleries);
 
         $this->article->save();
     }
@@ -209,8 +221,8 @@ class ArticleAlgo
     {
 
         $categories = Category::whereIn('id', $request->categoryIds)->get();
-        foreach($categories as $category) {
-            if($category->statusId != ValidationStatus::PUBLISH_ID) {
+        foreach ($categories as $category) {
+            if ($category->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleCategory();
             }
         }
@@ -222,7 +234,7 @@ class ArticleAlgo
     {
 
         $tags = Tag::whereIn('id', $request->tagIds)->get();
-        foreach($tags as $tag) {
+        foreach ($tags as $tag) {
             if ($tag->statusId != ValidationStatus::PUBLISH_ID) {
                 errArticleTag();
             }

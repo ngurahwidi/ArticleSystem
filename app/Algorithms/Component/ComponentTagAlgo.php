@@ -16,30 +16,30 @@ class ComponentTagAlgo
 
     protected $user;
 
-    public function __construct (public Tag|int|null $tag = null)
+    public function __construct(public Tag|int|null $tag = null)
     {
 
         $this->user = Auth::user();
 
-        if(is_int($this->tag)) {
+        if (is_int($this->tag)) {
             $this->tag = Tag::find($this->tag);
-            if(!$this->tag) {
+            if (!$this->tag) {
                 errTagGet();
             }
 
-            if($this->user->id != $this->tag->createdBy) {
+            if ($this->user->id != $this->tag->createdBy) {
                 errAccessDenied();
             }
         }
     }
 
-    public function create (Request $request)
+    public function create(Request $request)
     {
         try {
             DB::transaction(function () use ($request) {
                 $this->tag = $this->createTag($request);
 
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->tag->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new tag : {$this->tag->name} [{$this->tag->id}]");
@@ -52,10 +52,10 @@ class ComponentTagAlgo
         }
     }
 
-    public function update (Request $request)
+    public function update(Request $request)
     {
         try {
-            DB::transaction(function () use ($request){
+            DB::transaction(function () use ($request) {
 
                 $this->tag->setOldActivityPropertyAttributes(ActivityAction::UPDATE);
 
@@ -63,10 +63,10 @@ class ComponentTagAlgo
 
                 $this->deleteIcon($request);
 
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->tag->setActivityPropertyAttributes(ActivityAction::UPDATE)
-                ->saveActivity("Update tag : {$this->tag->name} [{$this->tag->id}]");
+                    ->saveActivity("Update tag : {$this->tag->name} [{$this->tag->id}]");
             });
 
             return success($this->tag->fresh());
@@ -76,7 +76,7 @@ class ComponentTagAlgo
         }
     }
 
-    private function createTag ($request)
+    private function createTag($request)
     {
 
         if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
@@ -89,14 +89,14 @@ class ComponentTagAlgo
             'createdBy' => $this->user->id,
             'createdByName' => $this->user->username
         ]);
-        if(!$tag) {
+        if (!$tag) {
             errTagSave();
         }
 
         return $tag;
     }
 
-    private function updateTag ($request)
+    private function updateTag($request)
     {
 
         if (!in_array($request->statusId, ValidationStatus::VALIDATION_STATUS)) {
@@ -104,36 +104,33 @@ class ComponentTagAlgo
         }
 
         $tag = $this->tag->update($request->all());
-        if(!$tag) {
+        if (!$tag) {
             errTagUpdate();
         }
     }
 
-    private function uploadIcon (Request $request)
+    private function saveIcon(Request $request)
     {
-        if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
-
-            $icon = $request->file('icon');
-            $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_TAG);
-            $this->tag->icon = $filePath;
-        }
-
-        unset($request->icon);
-
-        $this->tag->save();
-    }
-
-    private function deleteIcon ($request)
-    {
-
-        if ($request->has('deleteIcon') && $request->input('deleteIcon') === 'true') {
-
+        if ($request->deleteIcon) {
             $oldIconPath = $this->tag->icon;
             if (file_exists($oldIconPath)) {
                 unlink($oldIconPath);
             }
 
             $this->tag->icon = null;
+        } else {
+            if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
+                $icon = $request->file('icon');
+                $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_TAG);
+                $this->tag->icon = $filePath;
+            }
         }
+
+        $this->tag->save();
+    }
+
+    private function deleteIcon($request)
+    {
+
     }
 }

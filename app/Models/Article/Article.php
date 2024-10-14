@@ -145,7 +145,10 @@ class Article extends BaseModel
         $result = [];
         foreach ($this->galleries as $gallery) {
             if ($link = parse_link($gallery)) {
-                $result[] = $link;
+                $result[] = [
+                    'link' => $link,
+                    'path' => $gallery
+                ];
             }
         }
 
