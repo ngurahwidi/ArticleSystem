@@ -39,7 +39,7 @@ class ComponentTagAlgo
             DB::transaction(function () use ($request) {
                 $this->tag = $this->createTag($request);
 
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->tag->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new tag : {$this->tag->name} [{$this->tag->id}]");
@@ -61,9 +61,7 @@ class ComponentTagAlgo
 
                 $this->updateTag($request);
 
-                $this->deleteIcon($request);
-
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->tag->setActivityPropertyAttributes(ActivityAction::UPDATE)
                 ->saveActivity("Update tag : {$this->tag->name} [{$this->tag->id}]");
@@ -109,31 +107,26 @@ class ComponentTagAlgo
         }
     }
 
-    private function uploadIcon (Request $request)
-    {
-        if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
-
-            $icon = $request->file('icon');
-            $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_TAG);
-            $this->tag->icon = $filePath;
-        }
-
-        unset($request->icon);
-
-        $this->tag->save();
-    }
-
-    private function deleteIcon ($request)
+    private function saveIcon (Request $request)
     {
 
-        if ($request->has('deleteIcon') && $request->input('deleteIcon') === 'true') {
-
-            $oldIconPath = $this->tag->icon;
-            if (file_exists($oldIconPath)) {
-                unlink($oldIconPath);
+        if ($request->deleteIcon) {
+            $oldIcon = $this->tag->icon;
+            if (file_exists(Path::STORAGE_PUBLIC_PATH($oldIcon))) {
+                unlink(Path::STORAGE_PUBLIC_PATH($oldIcon));
             }
 
             $this->tag->icon = null;
+        } else {
+
+            if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
+
+                $icon = $request->file('icon');
+                $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_TAG);
+                $this->tag->icon = $filePath;
+            }
         }
+
+        $this->tag->save();
     }
 }

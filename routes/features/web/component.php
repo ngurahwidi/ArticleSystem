@@ -15,20 +15,20 @@ Route::prefix("components")
     ->group(function () {
 
         Route::get("", [CategoryController::class, "get"]);
-        Route::get("{id}", [CategoryController::class, "getById"]);
         Route::post("", [CategoryController::class, "create"]);
-        Route::post("{id}/update", [CategoryController::class, "update"]);
+        Route::get("{id}", [CategoryController::class, "getById"]);
         Route::delete("{id}", [CategoryController::class, "delete"]);
+        Route::post("{id}/update", [CategoryController::class, "update"]);
     });
 
     Route::prefix("tags")
     ->group(function () {
 
         Route::get("", [TagController::class, "get"]);
-        Route::get("{id}", [TagController::class, "getById"]);
         Route::post("", [TagController::class, "create"]);
-        Route::post("{id}/update", [TagController::class, "update"]);
+        Route::get("{id}", [TagController::class, "getById"]);
         Route::delete("{id}", [TagController::class, "delete"]);
+        Route::post("{id}/update", [TagController::class, "update"]);
     });
 });
 

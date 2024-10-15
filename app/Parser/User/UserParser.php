@@ -22,7 +22,6 @@ class UserParser extends BaseParser
         return [
             'id' => $data->id,
             'username' => $data->username,
-            'number' => $data->number,
             'email' => $data->email,
             'phone' => $data->phone,
             'profile' => parse_link($data->profile),

@@ -50,7 +50,7 @@ class ArticleAlgo
 
                 $this->article = $this->createArticle($request);
 
-                $this->uploadFeaturedImage($request);
+                $this->saveFeaturedImage($request);
 
                 $this->uploadGallery($request);
 
@@ -80,7 +80,7 @@ class ArticleAlgo
 
                 $this->updateArticle($request);
 
-                $this->uploadFeaturedImage($request);
+                $this->saveFeaturedImage($request);
 
                 $this->uploadGallery($request);
 
@@ -155,34 +155,54 @@ class ArticleAlgo
         }
     }
 
-    private function uploadFeaturedImage($request)
+    private function saveFeaturedImage($request)
     {
 
-        if($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
+        if ($request->deleteFeaturedImage) {
+            $oldFeaturedImage = $this->article->featuredImage;
+            if (file_exists(Path::STORAGE_PUBLIC_PATH($oldFeaturedImage))) {
+                unlink(Path::STORAGE_PUBLIC_PATH($oldFeaturedImage));
+            }
 
-            $file = $request->file('featuredImage');
-            $filePath = FileUpload::upload($file, $request->title, Path::ARTICLE);
-            $this->article->featuredImage = $filePath;
+            $this->article->featuredImage = null;
+        } else {
+
+            if($request->hasFile('featuredImage') && $request->file('featuredImage')->isValid()) {
+
+                $file = $request->file('featuredImage');
+                $filePath = FileUpload::upload($file, $request->title, Path::ARTICLE);
+                $this->article->featuredImage = $filePath;
+            }
         }
-
-        unset($request->featuredImage);
 
         $this->article->save();
     }
 
     private function uploadGallery(Request $request)
     {
-        $imagePaths = [];
+        $imagePaths = $this->article->galleries ?: [];
 
-        if($request->hasFile('galleries')) {
-            foreach ($request->file('galleries') as $image) {
+        foreach ($request->deletedGalleries ?: [] as $deletedGallery) {
+            foreach ($imagePaths as $key => $imagePath) {
+                if ($deletedGallery != $imagePath) {
+                    continue;
+                }
 
-                $imagePaths[] = FileUpload::upload($image, $request->title, PATH::ARTICLE_GALLERY);
-                $this->article->galleries = $imagePaths;
+                if (file_exists(Path::STORAGE_PUBLIC_PATH($deletedGallery))) {
+                    unlink(Path::STORAGE_PUBLIC_PATH($deletedGallery));
+                }
+
+                unset($imagePaths[$key]);
             }
         }
 
-        unset($request->galleries);
+        $imagePaths = array_values($imagePaths);
+        if ($request->hasFile('galleries')) {
+            foreach ($request->file('galleries') as $gallery) {
+                $imagePaths[] = FileUpload::upload($gallery, $request->title, Path::ARTICLE_GALLERY);
+                $this->article->galleries = $imagePaths;
+            }
+        }
 
         $this->article->save();
     }

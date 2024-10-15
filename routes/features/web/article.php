@@ -10,10 +10,10 @@ Route::group(['middleware' => 'auth.api'], function () {
 
         //Article
         Route::get("", [ArticleController::class, "get"]);
-        Route::get("{id}", [ArticleController::class, "getById"]);
         Route::post("", [ArticleController::class, "create"]);
-        Route::post("{id}/update", [ArticleController::class, "update"]);
+        Route::get("{id}", [ArticleController::class, "getById"]);
         Route::delete("{id}", [ArticleController::class, "delete"]);
+        Route::post("{id}/update", [ArticleController::class, "update"]);
 
         //Favorite
         Route::post("{id}/favorites", [FavoriteController::class, "favorite"]);
@@ -22,8 +22,8 @@ Route::group(['middleware' => 'auth.api'], function () {
         //Comment
         Route::get("{id}/comments", [CommentController::class, "get"]);
         Route::post("{id}/comments", [CommentController::class, "create"]);
-        Route::post("{id}/comments/{commentId}/update", [CommentController::class, "update"]);
         Route::delete("{id}/comments/{commentId}", [CommentController::class, "delete"]);
+        Route::post("{id}/comments/{commentId}/update", [CommentController::class, "update"]);
 });
 
 

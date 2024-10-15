@@ -92,7 +92,6 @@ class AuthAlgo
 
         $user = User::create([
             'username' => $request->username,
-            'number' => UserNumber::generate(),
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'phone' => $request->phone,

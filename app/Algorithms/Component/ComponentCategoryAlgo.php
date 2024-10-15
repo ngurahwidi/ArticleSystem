@@ -40,7 +40,7 @@ class ComponentCategoryAlgo
 
                 $this->category = $this->createCategory($request);
 
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->category->setActivityPropertyAttributes(ActivityAction::CREATE)
                     ->saveActivity("Enter new category : {$this->category->name} [{$this->category->id}]");
@@ -62,7 +62,7 @@ class ComponentCategoryAlgo
 
                 $this->updateCategory($request);
 
-                $this->uploadIcon($request);
+                $this->saveIcon($request);
 
                 $this->category->setActivityPropertyAttributes(ActivityAction::UPDATE)
                 ->saveActivity("Update category : {$this->category->name} [{$this->category->id}]");
@@ -108,16 +108,25 @@ class ComponentCategoryAlgo
         }
     }
 
-    private function uploadIcon (Request $request)
+    private function saveIcon (Request $request)
     {
-        if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
 
-            $icon = $request->file('icon');
-            $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_CATEGORY);
-            $this->category->icon = $filePath;
+        if ($request->deleteIcon) {
+            $oldIcon = $this->category->icon;
+            if (file_exists(Path::STORAGE_PUBLIC_PATH($oldIcon))) {
+                unlink(Path::STORAGE_PUBLIC_PATH($oldIcon));
+            }
+
+            $this->category->icon = null;
+        } else {
+
+            if ($request->hasFile('icon') && $request->file('icon')->isValid()) {
+
+                $icon = $request->file('icon');
+                $filePath = FileUpload::upload($icon, $request->name, Path::COMPONENT_CATEGORY);
+                $this->category->icon = $filePath;
+            }
         }
-
-        unset($request->icon);
 
         $this->category->save();
     }
