@@ -3,6 +3,7 @@
 namespace App\Models\Article;
 
 use App\Models\BaseModel;
+use App\Models\GetOrPaginate;
 use App\Models\User\User;
 use App\Services\Constant\Global\ValidationStatus;
 use Illuminate\Support\Facades\Auth;

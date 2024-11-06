@@ -25,7 +25,7 @@ class CategoryController extends Controller
                 errAccessDenied();
             }
             return $next($request);
-        });
+        })->except('get', 'getById');
     }
 
     public function get(Request $request)
