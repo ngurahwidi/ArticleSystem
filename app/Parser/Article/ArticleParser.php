@@ -40,6 +40,7 @@ class ArticleParser extends BaseParser
                     'name' => $tag->name,
                 ];
             }),
+            'createdAt' => $data->createdAt,
         ];
 
     }
