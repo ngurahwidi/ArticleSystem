@@ -18,9 +18,8 @@ return new class extends Migration
         Schema::create('component_tags', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('icon');
+            $table->string('icon')->nullable();
             $table->integer('statusId');
-            $table->foreignId('userId');
 
             $this->getDefaultCreatedBy($table);
             $this->getDefaultTimestamps($table);

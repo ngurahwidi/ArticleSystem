@@ -5,10 +5,13 @@ namespace App\Models\Component;
 use App\Models\BaseModel;
 use App\Models\User\User;
 use App\Models\Article\Article;
+use App\Parser\Component\ComponentParser;
+use App\Models\Component\Traits\HasActivityComponentProperty;
 
 class Category extends BaseModel
 {
-    protected $table = 'categories';
+    use HasActivityComponentProperty;
+    protected $table = 'component_categories';
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -17,9 +20,11 @@ class Category extends BaseModel
         self::DELETED_AT => 'datetime'
     ];
 
+    public $parserClass = ComponentParser::class;
+
     public function articles()
     {
-        return $this->belongsToMany(Article::class, 'article_categories', 'categoryId', 'articleId');
+        return $this->belongsToMany(Article::class, 'component_article_categories', 'categoryId', 'articleId');
     }
 
     public function users()

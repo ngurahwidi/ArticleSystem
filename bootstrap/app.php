@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckAPIToken;
 use Illuminate\Foundation\Application;
@@ -20,18 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
             ->namespace("$namespace\\" . config('base.conf.namespace.web'))
             ->group(base_path('routes/web.php'));
 
-        Route::prefix(config('base.conf.prefix.mobile') . "/$version/$service")
-            ->middleware(['web'])
-            ->namespace("$namespace\\" . config('base.conf.namespace.mobile'))
-            ->group(base_path('routes/mobile.php'));
-
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: ['api/*']);
         $middleware->alias(
             [
-                'auth.api' => CheckAPIToken::class
-            ]    
+                'auth.api' => CheckAPIToken::class,
+                'auth.role' => CheckRole::class
+            ]
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {

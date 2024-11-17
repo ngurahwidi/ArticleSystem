@@ -36,8 +36,13 @@
         "files": [
             "app/Services/Helpers/activity.php",
             "app/Services/Helpers/helpers.php",
+            "app/Services/Helpers/access.php",
             "app/Services/Helpers/Status/globals.php",
-            "app/Services/Helpers/Status/article.php"
+            "app/Services/Helpers/Status/article.php",
+            "app/Services/Helpers/Status/comment.php",
+            "app/Services/Helpers/Status/category.php",
+            "app/Services/Helpers/Status/tag.php",
+            "app/Services/Helpers/Status/user.php"
         ]
     },
     "autoload-dev": {

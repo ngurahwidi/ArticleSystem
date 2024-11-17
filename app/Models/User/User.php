@@ -2,9 +2,10 @@
 
 namespace App\Models\User;
 
-use App\Models\BaseModel;
 use App\Models\Article\Article;
+use App\Models\Article\Comment;
 use App\Models\Component\Category;
+use App\Parser\User\UserParser;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,14 +28,21 @@ class User extends Authenticatable implements JWTSubject
     const UPDATED_AT = 'updatedAt';
     const DELETED_AT = 'deletedAt';
 
+    public $parserClass = UserParser::class;
+
     public function articles()
     {
         return $this->hasMany(Article::class, 'userId');
     }
 
-    public function categories()
+    public function favorites()
     {
-        return $this->hasMany(Category::class, 'userId');
+        return $this->belongsToMany(Article::class, 'favorites', 'userId', 'articleId');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'userId');
     }
 
     public function getJWTIdentifier()

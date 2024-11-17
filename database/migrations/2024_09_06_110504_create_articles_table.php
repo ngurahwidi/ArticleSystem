@@ -22,11 +22,11 @@ return new class extends Migration
             $table->foreignId('userId');
             $table->string('description');
             $table->text('content');
-            $table->string('filepath');
-            $table->json('gallery');
+            $table->string('featuredImage')->nullable();
+            $table->json('galleries')->nullable();
             $table->integer('statusId');
+            $table->unsignedInteger('popular')->default(0);
 
-            $this->getDefaultCreatedBy($table);
             $this->getDefaultTimestamps($table);
         });
     }
