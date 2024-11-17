@@ -20,3 +20,24 @@ if (!function_exists("errForbidden")) {
         error(403, "Forbidden!", $internalMsg, $status);
     }
 }
+
+if (!function_exists("errNotFound")) {
+    function errNotFound($internalMsg = "", $status = null)
+    {
+        error(404, "Not Found!", $internalMsg, $status);
+    }
+}
+
+if (!function_exists("errAccessDenied")) {
+    function errAccessDenied($internalMsg = "", $status = null)
+    {
+        error(403, "Access Denied!", $internalMsg, $status);
+    }
+}
+
+if (!function_exists("errValidationStatus")) {
+    function errValidationStatus($internalMsg = "", $status = null)
+    {
+        error(404, "StatusId not found!", $internalMsg, $status);
+    }
+}

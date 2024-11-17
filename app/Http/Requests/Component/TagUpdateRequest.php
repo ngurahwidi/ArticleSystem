@@ -4,7 +4,7 @@ namespace App\Http\Requests\Component;
 
 use GlobalXtreme\Validation\Support\FormRequest;
 
-class ComponentRequest extends FormRequest
+class TagUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,9 @@ class ComponentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string'
+            'name' => 'string|unique:component_tags|max:100',
+            'icon' => 'file|mimes:jpg,jpeg,png|max:2048',
+            'statusId' => 'integer'
         ];
     }
 }

@@ -22,11 +22,24 @@ class ComponentAlgo
         try {
 
             $component = DB::transaction(function () use ($model, $request) {
+
                 $user = Auth::guard('api')->user();
                 $createdBy = [
                     'createdBy' => $user->id,
                     'createdByName' => $user->username
                 ];
+
+                // TODO: Enable after install globalxtreme/laravel-identifier.
+//                $tableName = app($model)->getTable();
+//                $columns = DB::getSchemaBuilder()->getColumnListing($tableName);
+//                if (in_array('createdBy', $columns)) {
+//                    if ($user = auth_user()) {
+//                        $createdBy = [
+//                            'createdBy' => $user['id'],
+//                            'createdByName' => $user['fullName'],
+//                        ];
+//                    }
+//                }
 
                 $component = $model::create($request->all() + $createdBy);
 
